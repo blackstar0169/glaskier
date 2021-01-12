@@ -1,12 +1,30 @@
+const fs = require('fs');
 const {Client} = require('discord.js');
 const GuildPlayer = require('./GuildPlayer.js');
 const {findPlayerByGuild} = require('./utils.js');
 const Command = require('./Command.js');
+const config = require('./config.js');
 
 const client = new Client();
 
-var players = []
+var players = [];
 
+
+// Read config
+if (!fs.existsSync('config.json')) {
+    throw new Error('Config file config.json not found.');
+}
+
+try {
+    var config = JSON.parse(fs.readFileSync('config.json'));
+    Config.init(config);
+} catch (e) {
+    console.error("Parsing error:", e);
+}
+
+if (config === null) {
+    throw new Error('Confg file config.json not found.');
+}
 
 
 //Toutes les actions à faire quand le bot se connecte
@@ -43,7 +61,7 @@ client.on('guildCreate', (guild) => {
     }
 });
 client.on('guildDelete', (guild) => {
-    console.log('Removed to guild ' + guild.name);
+    console.log('Removed from guild ' + guild.name);
     var deleteIndex;
     for (var i = players.length; i >= 0; i--) {
         // Remove players attached to the guild
@@ -54,5 +72,5 @@ client.on('guildDelete', (guild) => {
     }
 });
 
-client.login("Nzk3MjMxODg0NjYwNzY4NzY4.X_jeDQ.ncLkMpK9Ntwv1k8w5Na4-MTvoWo");
+client.login(config.botToken);
 

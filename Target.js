@@ -4,6 +4,7 @@ const moment = require('moment');
 const {random} = require('./utils.js');
 const fs = require('fs');
 const { EventEmitter } = require('events');
+const config = require('./config.js');
 
 class Target extends EventEmitter {
     constructor (channel, duration) {
@@ -29,7 +30,7 @@ class Target extends EventEmitter {
 
         // Play the sound
         return this.channel.join().then((connection) => {
-            var dir = './sounds/';
+            var dir = config.soundDir;
             var soundFiles = fs.readdirSync(dir);
             var index = random(0, soundFiles.length - 1);
             connection.play(dir + soundFiles[index]);
