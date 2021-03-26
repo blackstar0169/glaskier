@@ -1,5 +1,6 @@
 const {Collection, VoiceChannel, Guild} = require('discord.js');
 const moment = require('moment');
+const config = require('./config.js');
 const Target = require('./Target.js');
 const {random} = require('./utils.js');
 
@@ -11,8 +12,8 @@ class GuildPlayer {
     constructor(guild) {
         this.target = null;
         this.started = true;
-        this.minLimit = 60;
-        this.maxLimit = 120;
+        this.minLimit = config.get('defaultMinTime', 600);
+        this.maxLimit = config.get('defaultMaxTime', 3600);
         this.history = [];
         this.guild = guild;
         this.availableChannels = new Collection();

@@ -16,14 +16,9 @@ if (!fs.existsSync('config.json')) {
 }
 
 try {
-    var config = JSON.parse(fs.readFileSync('config.json'));
-    Config.init(config);
+    config.init(JSON.parse(fs.readFileSync('config.json')));
 } catch (e) {
     console.error("Parsing error:", e);
-}
-
-if (config === null) {
-    throw new Error('Confg file config.json not found.');
 }
 
 
@@ -72,5 +67,5 @@ client.on('guildDelete', (guild) => {
     }
 });
 
-client.login(config.botToken);
+client.login(config.get('botToken'));
 

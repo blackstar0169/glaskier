@@ -1,28 +1,58 @@
 
-var required = [
-    'lang',
-    'botToken',
-    'soundDir'
-];
+class Config {
+    config = {};
+    default = {
+        "lang": "en",
+        "soundDir": "./sounds",
+    };
+    required = [
+        'lang',
+        'botToken',
+        'soundDir'
+    ];
 
-
-function validate(config) {
-    var missing = [];
-    for (let i = 0; i < required.length; i++) {
-        if (typeof config[required[i]] === 'undefined' || config[this.required[i]] === null || config[this.required[i]] === '') {
-            missing.push(this.required[i]);
+    /**
+     * Init configuration
+     * @param {object} config
+     * @return {boolean}
+     */
+    init(config) {
+        var errors = this.validate(config);
+        if (errors.length === 0) {
+            this.config = Object.assign({}, this.default, config)
+            return true;
         }
+
+        console.error('Config error. Missing properties : ' + errors.join(', '));
+
+        return false;
     }
 
-    return missing;
+    /**
+     * Validate configuration and return an array with missing attribute.
+     * The config is valid if the array is empty
+     *
+     * @param {object} config
+     * @returns {object} Array of missing attributes
+     */
+    validate(config) {
+        var missing = [];
+        for (let i = 0; i < this.required.length; i++) {
+            if (typeof config[this.required[i]] === 'undefined' || config[this.required[i]] === null || config[this.required[i]] === '') {
+                missing.push(this.required[i]);
+            }
+        }
+
+        return missing;
+    }
+
+    get(key, def) {
+        return typeof this.config[key] !== 'undefined' ? this.config[key] : def;
+    }
+
+    set(key, value) {
+        return this.config[key] = value;
+    }
 }
 
-var errors = validate(config);
-if (errors !== null) {
-    throw new Error('Invalid config. Missing ' + errors.join(', ') + 'parameters.');
-}
-delete errors;
-delete required;
-
-var config = Object.assign({}, this.default, config);
-module.exports = config;
+module.exports = new Config();
