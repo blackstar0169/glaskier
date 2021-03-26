@@ -52,6 +52,11 @@ class GuildPlayer {
             this.addHistory(channel, soundfile)
             this.planNextPlay();
         });
+        // Plan next play if the current play failed
+        this.target.on('error', (channel, soundfile) => {
+            // @todo : Log cancel
+            this.planNextPlay();
+        });
 
         return this.target;
     }

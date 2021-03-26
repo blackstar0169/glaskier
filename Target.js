@@ -29,7 +29,7 @@ class Target extends EventEmitter {
 
     play() {
         if (!this.isValid()) {
-            console.error('Impossible de se connecter dans ' + this.channel.guild.name + '/' + this.channel.name);
+            this.triggerError('Aucun membre présent ou accès refusé pour se connecter dans ' + this.channel.guild.name + '/' + this.channel.name);
             return false;
         }
 
@@ -37,7 +37,7 @@ class Target extends EventEmitter {
         // Add trailing salsh to sound dir
         dir = fs.realpathSync(dir);
         if (typeof dir !== 'string') {
-            console.error('Dossier audio introuvable : ' + config.get('soundDir'));
+            this.triggerError('Dossier audio introuvable : ' + config.get('soundDir'));
             return false;
         }
         if(dir.substr(-1) !== '/') {
@@ -45,22 +45,22 @@ class Target extends EventEmitter {
         }
         var soundFiles = fs.readdirSync(dir).filter(this.filterSoundFiles);
         if (soundFiles.length === 0) {
-            console.error('Dossier audio vide.');
+            this.triggerError('Dossier audio vide.');
             return false;
         }
         var index = random(0, soundFiles.length - 1);
         var path = fs.realpathSync(dir + soundFiles[index]);
 
         if(path == false || !fs.existsSync(path)){
-            console.error('Fichier audio inexistant : ' + path);
+            this.triggerError('Fichier audio inexistant : ' + path);
             return false;
         }
 
         try {
             fs.accessSync(path, fs.R_OK);
         } catch (err) {
-            console.error(err);
-            console.error('Accès refusé au fichier audio : ' + path);
+            console.log(err);
+            this.triggerError('Accès refusé au fichier audio : ' + path);
             return false;
         }
 
@@ -85,10 +85,17 @@ class Target extends EventEmitter {
         }).catch(console.error);
     }
 
+    triggerError(error) {
+        if (error) {
+            console.error(error)
+        }
+        this.emit('error', this, error);
+    }
+
     isValid() {
         return this.channel instanceof VoiceChannel &&
             this.channel.speakable &&
-            this.channel.members.size
+            this.channel.members.size > 0
     }
 
     filterSoundFiles(file) {

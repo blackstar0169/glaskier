@@ -1,5 +1,5 @@
 - Implement commented commands
-- Config file
 - Documentation
 - I18n
 - Deploy
+- Disconnect from all channels on startup
