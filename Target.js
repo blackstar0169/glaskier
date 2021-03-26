@@ -33,48 +33,39 @@ class Target extends EventEmitter {
             return false;
         }
 
+        var dir = config.get('soundDir').replace(/\/$/, '');
+        // Add trailing salsh to sound dir
+        dir = fs.realpathSync(dir);
+        if (typeof dir !== 'string') {
+            console.error('Dossier audio introuvable : ' + config.get('soundDir'));
+            return false;
+        }
+        if(dir.substr(-1) !== '/') {
+            dir += '/';
+        }
+        var soundFiles = fs.readdirSync(dir).filter(this.filterSoundFiles);
+        if (soundFiles.length === 0) {
+            console.error('Dossier audio vide.');
+            return false;
+        }
+        var index = random(0, soundFiles.length - 1);
+        var path = fs.realpathSync(dir + soundFiles[index]);
+
+        if(path == false || !fs.existsSync(path)){
+            console.error('Fichier audio inexistant : ' + path);
+            return false;
+        }
+
+        try {
+            fs.accessSync(path, fs.R_OK);
+        } catch (err) {
+            console.error(err);
+            console.error('Accès refusé au fichier audio : ' + path);
+            return false;
+        }
+
         // Play the sound
         return this.channel.join().then((connection) => {
-            var dir = config.get('soundDir').replace(/\/$/, '');
-            // Add trailing salsh to sound dir
-            dir = fs.realpathSync(dir);
-            if (typeof dir !== 'string') {
-                console.error('Dossier audio introuvable : ' + config.get('soundDir'));
-                connection.disconnect();
-                return false;
-            }
-            if(dir.substr(-1) !== '/') {
-                dir += '/';
-            }
-            var soundFiles = fs.readdirSync(dir).filter(this.filterSoundFiles);
-            if (soundFiles.length === 0) {
-                console.error('Dossier audio vide.');
-                connection.disconnect();
-                return false;
-            }
-            var index = random(0, soundFiles.length - 1);
-            var path = fs.realpathSync(dir + soundFiles[index]);
-
-            if(path == false || !fs.existsSync(path)){
-                console.error('Fichier audio inexistant : ' + path);
-                connection.disconnect();
-                return false;
-            }
-
-            try {
-                fs.accessSync(path, constants.R_OK);
-            } catch (err) {
-                connection.disconnect();
-                return false;
-            }
-            /*
-            if(!fs.accessSync(path, fs.R_OK)){
-                console.error('Accès refusé au fichier audio : ' + path);
-                connection.disconnect();
-                return false;
-            }
-            */
-
             console.log(path);
             connection.play(path);
 
