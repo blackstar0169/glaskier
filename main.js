@@ -12,13 +12,15 @@ var players = [];
 
 // Read config
 if (!fs.existsSync('config.json')) {
-    throw new Error('Config file config.json not found.');
+    console.error('Config file ' + process.cwd() + '/config.json not found.');
+    process.exit(1);
 }
 
 try {
     config.init(JSON.parse(fs.readFileSync('config.json')));
 } catch (e) {
     console.error("Parsing error:", e);
+    process.exit(2);
 }
 
 

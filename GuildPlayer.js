@@ -23,7 +23,12 @@ class GuildPlayer {
         // Listen join and leav events in voice chanels
         this.guild.client.on('channelCreate', this.scanChannels.bind(this));
         this.guild.client.on('channelDelete', this.scanChannels.bind(this));
-        this.guild.client.on('voiceStateUpdate', this.scanChannels.bind(this));
+        this.guild.client.on('voiceStateUpdate', () => {
+            this.scanChannels.bind(this);
+            if (this.target === null) {
+                this.planNextPlay();
+            }
+        });
     }
 
     planNextPlay() {
