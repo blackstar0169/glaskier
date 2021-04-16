@@ -1,7 +1,7 @@
 const { VoiceChannel } = require('discord.js');
 const mp3Duration = require('mp3-duration');
 const moment = require('moment');
-const { random } = require('./utils.js');
+const { random, empty } = require('./utils.js');
 const fs = require('fs');
 const { EventEmitter } = require('events');
 const config = require('./config.js');
@@ -9,25 +9,47 @@ const config = require('./config.js');
 class Target extends EventEmitter {
     /**
      * Target a channel to play a sound
-     * @param {*} channel The targeted VoiceChannel
-     * @param {*} duration The timeout duration in seconds
+     * @param {VoiceChannel} channel The targeted VoiceChannel
+     * @param {number} duration The timeout duration in seconds
+     * @param {GuildPlayer} client GuildPlayer object
      */
-    constructor(channel, duration) {
+    constructor(channel, duration, player) {
         super();
         this.channel = channel;
         this.timeoutDate = moment().add(duration, 'seconds');
-        this.timeout = channel.client.setTimeout(() => {
+        this.player = player;
+
+        if (channel !== null) {
+            this.client = channel.client;
+        } else if (channel === null && !empty(player)) {
+            this.client = player.guild.client;
+        } else {
+            this.triggerError('Bad Target object construction. You must give a Channel or at lease a GuildPlayer object.');
+            return null;
+        }
+
+        this.timeout = this.client.setTimeout(() => {
             this.play();
         }, duration * 1000);
     }
 
     cancel() {
-        this.channel.client.clearTimeout(this.timeout);
+        this.client.clearTimeout(this.timeout);
         this.timeout = null;
         this.timeoutDate = null;
     }
 
     play() {
+        if (this.channel === null && !empty(this.player)) {
+            this.player.scanChannels();
+            if (this.player.availableChannels.size === 0) {
+                console.log('Can\'t find non empty channel');
+                return false;
+            }
+            this.channel = this.player.availableChannels.random();
+        }
+
+
         if (!this.isValid()) {
             this.triggerError('Aucun membre présent ou accès refusé pour se connecter dans ' + this.channel.guild.name + '/' + this.channel.name);
             return false;

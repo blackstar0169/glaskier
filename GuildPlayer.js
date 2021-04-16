@@ -16,6 +16,9 @@ class GuildPlayer {
         this.maxLimit = config.get('defaultMaxTime', 3600);
         this.history = [];
         this.guild = guild;
+        /**
+         * @var Collection
+         */
         this.availableChannels = new Collection();
 
         this.planNextPlay();
@@ -48,8 +51,9 @@ class GuildPlayer {
         }
 
         this.target = new Target(
-            this.availableChannels.random(),
-            random(this.minLimit, this.maxLimit)
+            null,
+            random(this.minLimit, this.maxLimit),
+            this
         );
 
         // Generate a new target after it has been played

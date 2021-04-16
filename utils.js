@@ -17,5 +17,12 @@ module.exports = {
 
     random: (min, max) => {
         return Math.floor(Math.random() * (max - min)) + min;
+    },
+
+    empty: (value) => {
+        if (typeof value === 'string' && value === '') {
+            return true;
+        }
+        return typeof value === 'undefined' || value === null || value === false || value === 0;
     }
 }

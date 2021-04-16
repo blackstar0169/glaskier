@@ -64,7 +64,7 @@ class Command {
 
     static test(player, message) {
         player.targetMember(message.member);
-        return 'Test...';
+        return 'Test :sweat_drops:';
     }
 
     static next(player, message) {
@@ -73,7 +73,11 @@ class Command {
         }
 
         if (player.target) {
-            return 'Ma prochaine intervention à ' + player.target.timeoutDate.format('DD/MM/YYYY HH:mm:ss') + ' dans le salon ' + player.target.channel.name;
+            var output = 'Ma prochaine intervention à ' + player.target.timeoutDate.format('DD/MM/YYYY HH:mm:ss');
+            if (player.target.channel) {
+                output += ' dans le salon ' + player.target.channel.name
+            }
+            return output;
         }
 
         return 'Pas d\'intervention de prévue. Lancez la commande `!gla reroll` pour planifier aléatoirement une intervention.';
@@ -82,7 +86,11 @@ class Command {
     static reroll(player) {
         player.planNextPlay();
         if (player.target) {
-            return 'Ma prochaine intervention à ' + player.target.timeoutDate.format('DD/MM/YYYY HH:mm:ss') + ' dans le salon ' + player.target.channel.name;
+            var output = 'Ma prochaine intervention à ' + player.target.timeoutDate.format('DD/MM/YYYY HH:mm:ss');
+            if (player.target.channel) {
+                output += ' dans le salon ' + player.target.channel.name
+            }
+            return output;
         }
 
         return 'Impossible de planifier une intervention. Vérifie qu\'il y a du monde dans au moins un channel';
