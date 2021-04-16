@@ -1,3 +1,5 @@
+const {chunk} = require('./utils.js');
+
 class Command {
     static commands = {
         'help' : 'List commands',
@@ -42,6 +44,10 @@ class Command {
         var output = this[match[1]](player, message, args);
         if (typeof output === 'string' && output.length > 0) {
             message.channel.send(output);
+        } else if (typeof output === 'object' && Array.isArray(output) && output.length > 0) {
+            for (let i = 0; i < output.length; i++) {
+                message.channel.send(output[i]);
+            }
         }
     }
 
@@ -127,7 +133,14 @@ class Command {
         if (player.history.length === 0) {
             return 'Aucune intervention depuis le lancement du serveur.';
         }
-        return 'Les ' + player.history.length + ' dernières interventions : \n```\n' + player.history.join('\n') + '\n```';
+        var history = chunk(player.history, 15);
+        var output = ['Les ' + player.history.length + ' dernières interventions : \n```\n' + history[0].join('\n') + '\n```'];
+        for (let i = 1; i < history.length; i++) {
+            output.push([
+                '```\n' + history[i].join('\n') + '\n```'
+            ]);
+        }
+        return output;
     }
 }
 

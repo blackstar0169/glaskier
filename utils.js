@@ -24,5 +24,14 @@ module.exports = {
             return true;
         }
         return typeof value === 'undefined' || value === null || value === false || value === 0;
+    },
+
+    chunk: (array, chunkSize) => {
+        var i, j;
+        var temparray = [];
+        for (i=0 , j = array.length; i < j; i += chunkSize) {
+            temparray = array.slice(i, i+chunk);
+        }
+        return temparray;
     }
 }
