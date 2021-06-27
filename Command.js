@@ -68,6 +68,12 @@ class Command {
         return channel.isText && channel.send('Erreur d\'utilisation de la commande !gla. Executez la command `!gla help` pour en savoir plus.');
     }
 
+    /**
+     * Play a random sound in the channel where the author is
+     * @param {GuildPlayer} player The sound player instance for the Guild
+     * @param {*} message Message of the command
+     * @returns
+     */
     static test(player, message) {
         player.targetMember(message.member);
         return 'Test :sweat_drops:';
@@ -133,7 +139,7 @@ class Command {
         if (player.history.length === 0) {
             return 'Aucune intervention depuis le lancement du serveur.';
         }
-        var history = chunk(player.history, 15);
+        var history = chunk(player.history, 10);
         var output = ['Les ' + player.history.length + ' dernières interventions : \n```\n' + history[0].join('\n') + '\n```'];
         for (let i = 1; i < history.length; i++) {
             output.push([

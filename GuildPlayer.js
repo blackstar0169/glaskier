@@ -1,4 +1,4 @@
-const {Collection, VoiceChannel, Guild} = require('discord.js');
+const {Collection, VoiceChannel} = require('discord.js');
 const moment = require('moment');
 const config = require('./config.js');
 const Target = require('./Target.js');
@@ -7,6 +7,9 @@ const {random} = require('./utils.js');
 const eCantFindMember = 1;
 const eChannelPermissions = 1;
 
+/**
+ * A player that will plan to play song at random interval. Each planification is called a Target
+ */
 class GuildPlayer {
 
     constructor(guild) {
@@ -124,6 +127,11 @@ class GuildPlayer {
         return this.planNextPlay();
     }
 
+    /**
+     * Play a random sound in the channel where the given member is
+     * @param {GuildMember} member
+     * @returns
+     */
     targetMember(member) {
         // Find the VoiceChannel where the author is.
         var memberChannel = this.guild.channels.cache.find((channel) => {
@@ -146,6 +154,10 @@ class GuildPlayer {
             return eChannelPermissions;
         }
     }
+
+    /**
+     * Define class constant bellow
+     */
 
     static get eCantFindMember() {
         return eCantFindMember;

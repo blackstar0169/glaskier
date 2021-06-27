@@ -11,7 +11,7 @@ class Target extends EventEmitter {
      * Target a channel to play a sound
      * @param {VoiceChannel} channel The targeted VoiceChannel
      * @param {number} duration The timeout duration in seconds
-     * @param {GuildPlayer} client GuildPlayer object
+     * @param {GuildPlayer} player GuildPlayer object that instanciate this target
      */
     constructor(channel, duration, player) {
         super();
@@ -40,21 +40,31 @@ class Target extends EventEmitter {
     }
 
     play() {
+        // Try to find a channel to play a sound in
         if (this.channel === null && !empty(this.player)) {
             this.player.scanChannels();
             if (this.player.availableChannels.size === 0) {
-                console.log('Can\'t find non empty channel');
+                this.triggerError('Can\'t find non empty channel in Guild' + this.channel.guild.name);
                 return false;
             }
             this.channel = this.player.availableChannels.random();
         }
 
-
+        // Check if all required condition are valid to play a sound
         if (!this.isValid()) {
-            this.triggerError('Aucun membre présent ou accès refusé pour se connecter dans ' + this.channel.guild.name + '/' + this.channel.name);
+            if (!(this.channel instanceof VoiceChannel)) {
+                this.triggerError('Channel instance invalide pour ' + this.channel.guild.name + '/' + this.channel.name);
+            } else if (!this.channel.speakable) {
+                this.triggerError('Le bot ne peut pas parler dans le channel ' + this.channel.guild.name + '/' + this.channel.name);
+            } else if (this.channel.members.size === 0) {
+                this.triggerError('Aucun membre présent dans ' + this.channel.guild.name + '/' + this.channel.name);
+            } else {
+                this.triggerError('Erreur indéterminée pour accèder à' + this.channel.guild.name + '/' + this.channel.name);
+            }
             return false;
         }
 
+        // Get a sound file
         var dir = config.get('soundDir').replace(/\/$/, '');
         // Add trailing salsh to sound dir
         dir = fs.realpathSync(dir);
@@ -88,7 +98,8 @@ class Target extends EventEmitter {
 
         // Play the sound
         return this.channel.join().then((connection) => {
-            console.log(path);
+            var now = new Date();
+            console.log('[' + now.toISOString + '] ' + path);
             connection.play(path);
 
             // Get the sound duration to disconnect at the end of it
