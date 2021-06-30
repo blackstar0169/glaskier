@@ -99,7 +99,7 @@ class Target extends EventEmitter {
         // Play the sound
         return this.channel.join().then((connection) => {
             var now = new Date();
-            console.log('[' + now.toISOString + '] ' + path);
+            console.log('[' + now.toISOString() + '] ' + path);
             connection.play(path);
 
             // Get the sound duration to disconnect at the end of it

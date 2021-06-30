@@ -1,5 +1,4 @@
 - Implement commented commands
 - Documentation
 - I18n
-- Deploy
 - Disconnect from all channels on startup

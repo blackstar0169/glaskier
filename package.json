@@ -1,6 +1,6 @@
 {
   "name": "glaskier",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "Random jaskier glitch sounds",
   "main": "main.js",
   "scripts": {

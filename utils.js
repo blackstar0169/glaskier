@@ -30,7 +30,7 @@ module.exports = {
         var i, j;
         var temparray = [];
         for (i=0 , j = array.length; i < j; i += chunkSize) {
-            temparray = array.slice(i, i+chunkSize);
+            temparray.push(array.slice(i, i+chunkSize));
         }
         return temparray;
     }
