@@ -146,10 +146,11 @@ class GuildPlayer {
 
         // If we can play sound in the channel
         if (memberChannel instanceof VoiceChannel &&
+            memberChannel.joinable &&
             memberChannel.speakable &&
             memberChannel.members.size
         ) {
-            return new Target(memberChannel, 0);
+            return new Target(memberChannel, 0, this);
         } else {
             return eChannelPermissions;
         }
