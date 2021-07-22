@@ -44,7 +44,7 @@ class Target extends EventEmitter {
         if (this.channel === null && !empty(this.player)) {
             this.player.scanChannels();
             if (this.player.availableChannels.size === 0) {
-                this.triggerError('Can\'t find non empty channel in Guild' + this.channel.guild.name);
+                this.triggerError('Can\'t find non empty channel in Guild' + this.player.guild.name);
                 return false;
             }
             this.channel = this.player.availableChannels.random();
@@ -53,13 +53,15 @@ class Target extends EventEmitter {
         // Check if all required condition are valid to play a sound
         if (!this.isValid()) {
             if (!(this.channel instanceof VoiceChannel)) {
-                this.triggerError('Channel instance invalide pour ' + this.channel.guild.name + '/' + this.channel.name);
+                this.triggerError('Channel instance invalide pour ' + this.player.guild.name + '/' + this.channel.name);
             } else if (!this.channel.speakable) {
-                this.triggerError('Le bot ne peut pas parler dans le channel ' + this.channel.guild.name + '/' + this.channel.name);
+                this.triggerError('Le bot ne peut pas parler dans le channel ' + this.player.guild.name + '/' + this.channel.name);
+            } else if (this.channel.joinable === 0) {
+                this.triggerError('Le bot ne peut pas aller dans le channel ' + this.player.guild.name + '/' + this.channel.name);
             } else if (this.channel.members.size === 0) {
-                this.triggerError('Aucun membre présent dans ' + this.channel.guild.name + '/' + this.channel.name);
+                this.triggerError('Aucun membre présent dans ' + this.player.guild.name + '/' + this.channel.name);
             } else {
-                this.triggerError('Erreur indéterminée pour accèder à' + this.channel.guild.name + '/' + this.channel.name);
+                this.triggerError('Erreur indéterminée pour accèder à' + this.player.guild.name + '/' + this.channel.name);
             }
             return false;
         }
@@ -127,6 +129,7 @@ class Target extends EventEmitter {
 
     isValid() {
         return this.channel instanceof VoiceChannel &&
+            this.channel.joinable &&
             this.channel.speakable &&
             this.channel.members.size > 0
     }
