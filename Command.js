@@ -1,3 +1,4 @@
+const config = require('./config.js');
 const GuildPlayer = require('./GuildPlayer.js');
 const {chunk, log} = require('./utils.js');
 
@@ -162,11 +163,15 @@ class Command {
     }
 
     static debug(player, message, args) {
+        var userId = message.member.user.id;
+        if (userId.toString() !== config.get('creatorId')) {
+            return 'Seul mon créateur peut accéder à cette commande.';
+        }
         if (args[0] === 'play') {
             player.target.play();
-            return 'Forcing the next song to play';
+            return 'Forcing the next song to play.';
         } if (args[0] === 'getUserId') {
-            return 'Your user id is ' + message.member.user.id
+            return 'Your user id is ' + userId
         }
     }
 }
