@@ -2,3 +2,5 @@
 - Documentation
 - I18n
 - Disconnect from all channels on startup
+- Find a way to display errors on test command
+- Add a watchdog

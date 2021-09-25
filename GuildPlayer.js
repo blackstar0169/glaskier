@@ -41,6 +41,10 @@ class GuildPlayer {
         if (!this.started) {
             return null;
         }
+        if (this.target !== null) {
+            this.target.cancel();
+            this.target = null;
+        }
 
         this.scanChannels();
         // Check if there is someone in the channel
@@ -49,9 +53,6 @@ class GuildPlayer {
         }
 
         // Cancel planned target
-        if (this.target !== null && this.target.timeoutDate.isBefore(moment())) {
-            this.target.cancel();
-        }
 
         this.target = new Target(
             null,
@@ -130,7 +131,8 @@ class GuildPlayer {
     /**
      * Play a random sound in the channel where the given member is
      * @param {GuildMember} member
-     * @returns
+     * @return bool|int True if the member that is targeted has been found in a channel or an error
+     * number if it failed.
      */
     targetMember(member) {
         // Find the VoiceChannel where the author is.

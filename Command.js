@@ -1,4 +1,5 @@
-const {chunk} = require('./utils.js');
+const GuildPlayer = require('./GuildPlayer.js');
+const {chunk, log} = require('./utils.js');
 
 class Command {
     static commands = {
@@ -41,6 +42,7 @@ class Command {
             args = args.split(' ').map(s => s.trim()).filter(s => s.length > 0).concat(stringArgs);
         }
         // Call the function of the command
+        log(message.member.displayName + ' run command ' + match[1]);
         var output = this[match[1]](player, message, args);
         if (typeof output === 'string' && output.length > 0) {
             message.channel.send(output);
@@ -75,8 +77,17 @@ class Command {
      * @returns
      */
     static test(player, message) {
-        player.targetMember(message.member);
-        return 'Test :sweat_drops:';
+        var ret = player.targetMember(message.member);
+        if (typeof ret === 'number') {
+            if (ret === GuildPlayer.eCantFindMember) {
+                return 'Impossible de trouver ' + message.member.displayName;
+            } else if (ret === GuildPlayer.eChannelPermissions) {
+                return 'Permission insufisante pour entrer dans le channel.';
+            }
+            return 'Code d\'erreur : ' + ret;
+        } else {
+            return 'Test :sweat_drops:';
+        }
     }
 
     static next(player, message) {

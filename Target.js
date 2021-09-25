@@ -44,7 +44,7 @@ class Target extends EventEmitter {
         if (this.channel === null && !empty(this.player)) {
             this.player.scanChannels();
             if (this.player.availableChannels.size === 0) {
-                this.triggerError('Can\'t find non empty channel in Guild' + this.player.guild.name);
+                this.triggerError('Can\'t find non empty channel in Guild ' + this.player.guild.name);
                 return false;
             }
             this.channel = this.player.availableChannels.random();

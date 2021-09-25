@@ -33,5 +33,10 @@ module.exports = {
             temparray.push(array.slice(i, i+chunkSize));
         }
         return temparray;
+    },
+
+    log: (str) => {
+        var now = new Date();
+        console.log('[' + now.toISOString() + '] ' + str);
     }
 }
