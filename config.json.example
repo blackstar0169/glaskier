@@ -2,4 +2,7 @@
     "lang": "fr",
     "botToken": "xxxxxxxxxx",
     "soundDir": "./sounds",
+    "creatorId": 123,
+    "defaultMinTime": 60,
+    "defaultMaxTime": 120
 }

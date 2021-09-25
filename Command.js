@@ -12,6 +12,7 @@ class Command {
         'reroll': 'Generate a new random time to play a song',
         'test': 'Play a song in your channel. Don\'t interupte the next random traget',
         'history': 'List the last 50 glitch',
+        'debug': 'Debug command. Only available for the creator.',
         // 'log': 'Display debug logs',
     }
 
@@ -158,6 +159,15 @@ class Command {
             ]);
         }
         return output;
+    }
+
+    static debug(player, message, args) {
+        if (args[0] === 'play') {
+            player.target.play();
+            return 'Forcing the next song to play';
+        } if (args[0] === 'getUserId') {
+            return 'Your user id is ' + message.member.user.id
+        }
     }
 }
 

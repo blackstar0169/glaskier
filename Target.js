@@ -36,6 +36,7 @@ class Target extends EventEmitter {
     cancel() {
         this.client.clearTimeout(this.timeout);
         this.timeout = null;
+        this.channel = null;
         this.timeoutDate = null;
     }
 
@@ -115,6 +116,7 @@ class Target extends EventEmitter {
                     this.emit('played', this.channel, soundFiles[index]);
                     this.timeout = null;
                     this.timeoutDate = null;
+                    this.channel = null;
                 }, duration * 1000);
             });
         }).catch(console.error);
