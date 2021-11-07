@@ -57,12 +57,12 @@ class Target extends EventEmitter {
                 this.triggerError('Channel instance invalide pour ' + this.player.guild.name + '/' + this.channel.name);
             } else if (!this.channel.speakable) {
                 this.triggerError('Le bot ne peut pas parler dans le channel ' + this.player.guild.name + '/' + this.channel.name);
-            } else if (this.channel.joinable === 0) {
+            } else if (!this.channel.joinable) {
                 this.triggerError('Le bot ne peut pas aller dans le channel ' + this.player.guild.name + '/' + this.channel.name);
             } else if (this.channel.members.size === 0) {
                 this.triggerError('Aucun membre présent dans ' + this.player.guild.name + '/' + this.channel.name);
             } else {
-                this.triggerError('Erreur indéterminée pour accèder à' + this.player.guild.name + '/' + this.channel.name);
+                this.triggerError('Erreur indéterminée pour accèder à ' + this.player.guild.name + '/' + this.channel.name);
             }
             return false;
         }
