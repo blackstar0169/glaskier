@@ -2,6 +2,9 @@ const {Collection, VoiceChannel} = require('discord.js');
 const moment = require('moment');
 const config = require('./config.js');
 const Target = require('./Target.js');
+const Cache = require('./Cache.js');
+const fs = require('fs');
+const path = require('path');
 const {random} = require('./utils.js');
 
 const eCantFindMember = 1;
@@ -23,6 +26,13 @@ class GuildPlayer {
          * @var Collection
          */
         this.availableChannels = new Collection();
+        this.cache = new Cache(this.guild.id);
+        this.soundDir = config.get('soundDir').replace(/\/$/, '');
+        // Add trailing salsh to sound dir
+        this.soundDir = fs.realpathSync(this.soundDir);
+        if(this.soundDir.substr(-1) !== '/') {
+            this.soundDir += '/';
+        }
 
         this.planNextPlay();
 
@@ -56,8 +66,8 @@ class GuildPlayer {
 
         this.target = new Target(
             null,
-            random(this.minLimit, this.maxLimit),
-            this
+            this,
+            random(this.minLimit, this.maxLimit)
         );
 
         // Generate a new target after it has been played
@@ -80,7 +90,7 @@ class GuildPlayer {
             '[' + moment().format('DD/MM/YYYY HH:mm:ss') + '] Channel : ' +
             channel.name +
             ' | Membres : ' + channel.members.filter(m => m.id !== this.guild.me.id).map(m => m.displayName).join(', ') +
-            ' | Son : ' + soundfile
+            ' | Son : ' + path.basename(soundfile)
         );
 
         // Limit history size
@@ -134,7 +144,7 @@ class GuildPlayer {
      * @return bool|int True if the member that is targeted has been found in a channel or an error
      * number if it failed.
      */
-    targetMember(member) {
+    targetMember(member, soundPath) {
         // Find the VoiceChannel where the author is.
         var memberChannel = this.guild.channels.cache.find((channel) => {
             return channel.type === 'voice' && channel.members.find((m) => {
@@ -146,16 +156,46 @@ class GuildPlayer {
             return eCantFindMember;
         }
 
+        return this.targetChannel(memberChannel, soundPath);
+    }
+
+    /**
+     * Play a random sound in the given channel
+     * @param {GuildChannel} channel
+     * @return bool|int True if the member that is targeted has been found in a channel or an error
+     * number if it failed.
+     */
+    targetChannel(channel, soundPath) {
+        console.log('target');
+
         // If we can play sound in the channel
-        if (memberChannel instanceof VoiceChannel &&
-            memberChannel.joinable &&
-            memberChannel.speakable &&
-            memberChannel.members.size
+        if (channel instanceof VoiceChannel &&
+            channel.joinable &&
+            channel.speakable &&
+            channel.members.size
         ) {
-            return new Target(memberChannel, 0, this);
+            var target = new Target(channel, this);
+            target.setSound(soundPath);
+            target.play();
+            return target;
         } else {
             return eChannelPermissions;
         }
+    }
+
+    /**
+     * Return the list of sound files in the sound directory
+     * @returns string[]
+     */
+    getSounds() {
+
+        if (typeof this.soundDir !== 'string') {
+            this.triggerError('Dossier audio introuvable : ' + config.get('soundDir'));
+            return false;
+        }
+        return fs.readdirSync(this.soundDir).filter(file => {
+            return file.match(/.*\.(mp3|wav)$/);
+        });
     }
 
     /**

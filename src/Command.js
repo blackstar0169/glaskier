@@ -14,6 +14,10 @@ class Command {
         'test': 'Play a song in your channel. Don\'t interupte the next random traget',
         'history': 'List the last 50 glitch',
         'debug': 'Debug command. Only available for the creator.',
+        'play': '[key] [channel?] Play a binded song if there is a key or a random song.',
+        'bind': '[key] [song name or index] Bind a key to a song',
+        'listsounds': 'List songs.',
+        'listbinds': 'List binds.',
         // 'log': 'Display debug logs',
     }
 
@@ -173,6 +177,105 @@ class Command {
         } if (args[0] === 'getUserId') {
             return 'Your user id is ' + userId
         }
+    }
+
+    static play(player, message, args) {
+        var binds = player.cache.pull('binds', {});
+        var sounds = player.getSounds().map(sound => sound.replace('.mp3', ''));
+        if (Object.keys(binds).indexOf(args[0]) < 0) {
+            return 'Aucun son associé à '+args[0]+'.';
+        }
+
+        if (sounds.indexOf(binds[args[0]]) < 0) {
+            return 'Le son associé à '+args[0]+' n\'existe plus.';
+        }
+
+        var path = player.soundDir + binds[args[0]] + '.mp3';
+        console.log(path);
+        if (typeof args[1] !== 'undefined') {
+            var ret = player.targetChannel(args[1], path);
+        } else {
+            console.log('targetMember');
+            var ret = player.targetMember(message.member, path);
+        }
+
+        if (typeof ret === 'number') {
+            if (ret === GuildPlayer.eCantFindMember) {
+                return 'Impossible de trouver ' + message.member.displayName;
+            } else if (ret === GuildPlayer.eChannelPermissions) {
+                return 'Permission insufisante pour entrer dans le channel.';
+            }
+            return 'Code d\'erreur : ' + ret;
+        } else {
+            return 'Play :hot_face:';
+        }
+    }
+
+    /**
+     *
+     * @param {GuildPlayer} player
+     * @param {string} message
+     * @param {Array} args
+     */
+    static bind(player, message, args) {
+        var binds = player.cache.pull('binds', {});
+        var key = args[0];
+        var sound = args[1];
+        var message = '';
+        var sounds = player.getSounds().map(sound => sound.replace('.mp3', ''));
+        if (args.length < 2) {
+            return 'Usage : !gla bind [bind_name] [song_name/song_index]';
+        }
+        if (typeof sounds[sound] !== "string" && sounds.indexOf(sound) < 0) {
+            return 'Impossible de trouver le son "'+sound+'". Utiliser la commande `!gla listsongs` pour lister les sons disponnibles';
+        }
+        if (typeof binds[key] === 'string') {
+            message = 'Le bind "'+key+'" a été remplacé avec succès';
+        } else {
+            message = 'Le bind "'+key+'" a été créé avec succès';
+        }
+
+
+        // Convert the bind by index to a bind by song name
+        console.log(typeof sounds[sound]);
+        if (typeof sounds[sound] === "string") {
+            sound = sounds[sound];
+        }
+
+        binds[key] = sound;
+        player.cache.push('binds', binds);
+
+        return message
+    }
+
+    static listsounds(player, message, args) {
+        var message = 'Liste des sons :\n';
+        var sounds = player.getSounds();
+        if (sounds.length === 0) {
+            return 'Aucun son disponible.';
+        }
+        for (const key in sounds) {
+            if (Object.hasOwnProperty.call(sounds, key)) {
+                message += key + ' : ' + sounds[key].replace('.mp3', '') + '\n';
+            }
+        }
+
+        return message;
+    }
+
+    static listbinds(player, message, args) {
+        var message = 'Liste des binds :\n';
+        var binds = player.cache.pull('binds', {});
+        if (Object.keys(binds).length === 0) {
+            return 'Aucun bind n\'a été créé.';
+        }
+        for (const key in binds) {
+            if (Object.hasOwnProperty.call(binds, key)) {
+                message += key + ' : ' + binds[key] + '\n';
+            }
+        }
+
+        return message;
     }
 }
 

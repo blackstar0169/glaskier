@@ -10,14 +10,15 @@ class Target extends EventEmitter {
     /**
      * Target a channel to play a sound
      * @param {VoiceChannel} channel The targeted VoiceChannel
-     * @param {number} duration The timeout duration in seconds
      * @param {GuildPlayer} player GuildPlayer object that instanciate this target
+     * @param {number} timeout The timeout duration in seconds
      */
-    constructor(channel, duration, player) {
+    constructor(channel, player, timeout) {
         super();
         this.channel = channel;
-        this.timeoutDate = moment().add(duration, 'seconds');
+        this.timeoutDate = null;
         this.player = player;
+        this.soundPath = null;
 
         if (channel !== null) {
             this.client = channel.client;
@@ -28,9 +29,12 @@ class Target extends EventEmitter {
             return null;
         }
 
-        this.timeout = this.client.setTimeout(() => {
-            this.play();
-        }, duration * 1000);
+        if (typeof timeout === 'number' && timeout >= 0) {
+            this.timeoutDate = moment().add(timeout, 'seconds');
+            this.timeout = this.client.setTimeout(() => {
+                this.play();
+            }, timeout * 1000);
+        }
     }
 
     cancel() {
@@ -38,6 +42,10 @@ class Target extends EventEmitter {
         this.timeout = null;
         this.channel = null;
         this.timeoutDate = null;
+    }
+
+    setSound(soundPath) {
+        this.soundPath = soundPath;
     }
 
     play() {
@@ -58,6 +66,7 @@ class Target extends EventEmitter {
             } else if (!this.channel.speakable) {
                 this.triggerError('Le bot ne peut pas parler dans le channel ' + this.player.guild.name + '/' + this.channel.name);
             } else if (!this.channel.joinable) {
+                console.trace('error');
                 this.triggerError('Le bot ne peut pas aller dans le channel ' + this.player.guild.name + '/' + this.channel.name);
             } else if (this.channel.members.size === 0) {
                 this.triggerError('Aucun membre présent dans ' + this.player.guild.name + '/' + this.channel.name);
@@ -68,52 +77,44 @@ class Target extends EventEmitter {
         }
 
         // Get a sound file
-        var dir = config.get('soundDir').replace(/\/$/, '');
-        // Add trailing salsh to sound dir
-        dir = fs.realpathSync(dir);
-        if (typeof dir !== 'string') {
-            this.triggerError('Dossier audio introuvable : ' + config.get('soundDir'));
-            return false;
+        if (typeof this.soundPath !== 'string' || this.soundPath.length === 0) {
+            var soundFiles = this.player.getSounds();
+            if (soundFiles.length === 0) {
+                this.triggerError('Dossier audio vide.');
+                return false;
+            }
+            var index = random(0, soundFiles.length - 1);
+            this.soundPath = fs.realpathSync(this.player.soundDir + soundFiles[index]);
         }
-        if(dir.substr(-1) !== '/') {
-            dir += '/';
-        }
-        var soundFiles = fs.readdirSync(dir).filter(this.filterSoundFiles);
-        if (soundFiles.length === 0) {
-            this.triggerError('Dossier audio vide.');
-            return false;
-        }
-        var index = random(0, soundFiles.length - 1);
-        var path = fs.realpathSync(dir + soundFiles[index]);
 
-        if(path == false || !fs.existsSync(path)){
-            this.triggerError('Fichier audio inexistant : ' + path);
+        if(typeof this.soundPath !== 'string' || !fs.existsSync(this.soundPath)){
+            this.triggerError('Fichier audio inexistant : ' + this.soundPath);
             return false;
         }
 
         try {
-            fs.accessSync(path, fs.R_OK);
+            fs.accessSync(this.soundPath, fs.R_OK);
         } catch (err) {
             console.log(err);
-            this.triggerError('Accès refusé au fichier audio : ' + path);
+            this.triggerError('Accès refusé au fichier audio : ' + this.soundPath);
             return false;
         }
 
         // Play the sound
         return this.channel.join().then((connection) => {
             var now = new Date();
-            console.log('[' + now.toISOString() + '] ' + path);
-            connection.play(path);
+            console.log('[' + now.toISOString() + '] ' + this.soundPath);
+            connection.play(this.soundPath);
 
             // Get the sound duration to disconnect at the end of it
-            mp3Duration(path, (err, duration) => {
+            mp3Duration(this.soundPath, (err, duration) => {
                 if (err) {
                     console.error(err.message);
                     duration = 10000;
                 }
                 this.channel.client.setTimeout(() => {
                     connection.disconnect();
-                    this.emit('played', this.channel, soundFiles[index]);
+                    this.emit('played', this.channel, this.soundPath);
                     this.timeout = null;
                     this.timeoutDate = null;
                     this.channel = null;
@@ -134,10 +135,6 @@ class Target extends EventEmitter {
             this.channel.joinable &&
             this.channel.speakable &&
             this.channel.members.size > 0
-    }
-
-    filterSoundFiles(file) {
-        return file.match(/.*\.(mp3|wav)$/);
     }
 }
 

@@ -1,4 +1,4 @@
-const {Guild} = require('discord.js');
+const config = require("./config");
 
 module.exports = {
     findPlayerByGuild: (guild, players) => {
@@ -38,5 +38,10 @@ module.exports = {
     log: (str) => {
         var now = new Date();
         console.log('[' + now.toISOString() + '] ' + str);
+    },
+
+    isProd: () => {
+        var env = config.get('env', 'dev');
+        return env === 'prod' || env === 'production';
     }
 }

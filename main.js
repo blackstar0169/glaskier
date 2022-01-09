@@ -1,9 +1,10 @@
 const fs = require('fs');
 const {Client} = require('discord.js');
-const GuildPlayer = require('./GuildPlayer.js');
-const {findPlayerByGuild} = require('./utils.js');
-const Command = require('./Command.js');
-const config = require('./config.js');
+const GuildPlayer = require('./src/GuildPlayer.js');
+const {findPlayerByGuild} = require('./src/utils.js');
+const Command = require('./src/Command.js');
+const config = require('./src/config.js');
+const { isProd } = require('./src/utils.js');
 
 const client = new Client();
 
@@ -19,7 +20,7 @@ if (!fs.existsSync('config.json')) {
 try {
     config.init(JSON.parse(fs.readFileSync('config.json')));
 } catch (e) {
-    console.error("Parsing error:", e);
+    console.error("Config file parsing error:", e);
     process.exit(2);
 }
 
@@ -34,17 +35,12 @@ client.on("ready", () => {
 })
 
 client.on('message', (message) => {
-    var answer = null;
-
-
-
     if (message.content.startsWith('!gla')) {
+        if (!isProd() && message.author.id !== config.get('creatorId')) {
+            message.channel.send(':warning: Je suis en maintenance.');
+        }
         var player = findPlayerByGuild(message.guild.id, players);
         Command.exec(message.content, player, message);
-    }
-
-    if (answer) {
-        message.channel.send(answer);
     }
 })
 
