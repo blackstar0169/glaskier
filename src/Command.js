@@ -34,18 +34,16 @@ class Command {
     static exec(interaction, player) {
         const command = interaction.options.getSubcommand();
         const args = interaction.options.data.options;
-
-        console.log(interaction.options.data);
         // Call the function of the command
         // log(interaction.member.displayName + ' run command ' + command);
         const output = this[command](player, interaction, args);
-        // if (typeof output === 'string' && output.length > 0) {
+        if (typeof output === 'string' && output.length > 0) {
             interaction.reply(output);
-        // } else if (typeof output === 'object' && Array.isArray(output) && output.length > 0) {
-        //     for (let i = 0; i < output.length; i++) {
-        //         interaction.channel.send(output[i]);
-        //     }
-        // }
+        } else if (typeof output === 'object' && Array.isArray(output) && output.length > 0) {
+            for (let i = 0; i < output.length; i++) {
+                interaction.channel.send(output[i]);
+            }
+        }
     }
 
     static help() {

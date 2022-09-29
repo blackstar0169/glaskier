@@ -44,7 +44,7 @@ class Cache {
     }
 
     save() {
-        fs.appendFileSync(this.dir + this.file, JSON.stringify(this.values));
+        fs.writeFileSync(this.dir + this.file, JSON.stringify(this.values));
     }
 
     load() {
