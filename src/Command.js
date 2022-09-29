@@ -158,7 +158,7 @@ class Command {
     static debug(player, interaction) {
         const userId = interaction.member.user.id;
         const option = interaction.options.get('option');
-        console.log(option);
+
         if (userId.toString() !== config.get('creatorId')) {
             return 'Seul mon créateur peut accéder à cette commande.';
         }
@@ -194,7 +194,6 @@ class Command {
         if (channel) {
             var ret = player.targetChannel(args[1], path);
         } else {
-            console.log('targetMember');
             var ret = player.targetMember(interaction.member, path);
         }
 
