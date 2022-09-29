@@ -1,12 +1,19 @@
 const fs = require('fs');
-const {Client} = require('discord.js');
+const {Client, GatewayIntentBits} = require('discord.js');
 const GuildPlayer = require('./src/GuildPlayer.js');
 const {findPlayerByGuild} = require('./src/utils.js');
 const Command = require('./src/Command.js');
 const config = require('./src/config.js');
 const { isProd } = require('./src/utils.js');
 
-const client = new Client();
+const client = new Client({
+	intents: [
+		GatewayIntentBits.Guilds,
+		GatewayIntentBits.GuildVoiceStates,
+		GatewayIntentBits.GuildMessages,
+		GatewayIntentBits.MessageContent
+	],
+});
 
 var players = [];
 
@@ -26,7 +33,7 @@ try {
 
 
 //Toutes les actions à faire quand le bot se connecte
-client.on("ready", () => {
+client.on('ready', () => {
     console.log("Servers list : ");
     client.guilds.cache.each((guild) => {
         players.push(new GuildPlayer(guild));
@@ -34,15 +41,20 @@ client.on("ready", () => {
     });
 })
 
-client.on('message', (message) => {
-    if (message.content.startsWith('!gla')) {
-        if (!isProd() && message.author.id !== config.get('creatorId')) {
+client.on('interactionCreate', async interaction => {
+	if (!interaction.isChatInputCommand()) return;
+    // console.log(interaction);
+    if (interaction.commandName === 'gla') {
+        if (!isProd() && interaction.member.id !== config.get('creatorId')) {
             message.channel.send(':warning: Je suis en maintenance.');
+        } else {
+            var player = findPlayerByGuild(interaction.guild.id, players);
+            Command.exec(interaction, player);
         }
-        var player = findPlayerByGuild(message.guild.id, players);
-        Command.exec(message.content, player, message);
     }
-})
+
+    // Command.exec(message.commandName, player, message);
+});
 
 client.on('guildCreate', (guild) => {
     console.log('Added to guild ' + guild.name);
@@ -55,7 +67,7 @@ client.on('guildCreate', (guild) => {
 });
 client.on('guildDelete', (guild) => {
     console.log('Removed from guild ' + guild.name);
-    var deleteIndex;
+
     for (var i = players.length; i >= 0; i--) {
         // Remove players attached to the guild
         if (guild.id === players[i].guild.id) {

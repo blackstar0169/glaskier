@@ -1,4 +1,6 @@
 const config = require('./config.js');
+const { ChatInputCommandInteraction, CommandInteractionOption } = require('discord.js');
+
 const GuildPlayer = require('./GuildPlayer.js');
 const {chunk, log} = require('./utils.js');
 
@@ -23,40 +25,27 @@ class Command {
 
     static usage = 'Usage: !gla [command] [options]...\n';
 
-    static exec(commandStr, player, message) {
-        var match = commandStr.match(/!gla\s*([a-zA-Z]+)\s*(.*)/);
-        var args = [];
+    /**
+     * Exec a registred command
+     * @param {ChatInputCommandInteraction} interaction
+     * @param {GuildPlayer} player
+     * @returns boolean
+     */
+    static exec(interaction, player) {
+        const command = interaction.options.getSubcommand();
+        const args = interaction.options.data.options;
 
-        // Check if the command line is valid
-        if (match === null || typeof match[1] === 'undefined' || typeof this.commands[match[1]] === 'undefined') {
-            this.displayBadCommand(message.channel);
-            return;
-        }
-
-        // Extract strings
-        if (typeof match[2] !== 'undefined') {
-            args = match[2];
-            var stringArgs = args.match(/("|')((?:\\\1|(?:(?!\1).))*)\1/g);
-            if (stringArgs) {
-                for (var i = 0; i < stringArgs.length; i++) {
-                    args.replace(stringArgs, '');
-                }
-            } else {
-                stringArgs = [];
-            }
-
-            args = args.split(' ').map(s => s.trim()).filter(s => s.length > 0).concat(stringArgs);
-        }
+        console.log(interaction.options.data);
         // Call the function of the command
-        log(message.member.displayName + ' run command ' + match[1]);
-        var output = this[match[1]](player, message, args);
-        if (typeof output === 'string' && output.length > 0) {
-            message.channel.send(output);
-        } else if (typeof output === 'object' && Array.isArray(output) && output.length > 0) {
-            for (let i = 0; i < output.length; i++) {
-                message.channel.send(output[i]);
-            }
-        }
+        // log(interaction.member.displayName + ' run command ' + command);
+        const output = this[command](player, interaction, args);
+        // if (typeof output === 'string' && output.length > 0) {
+            interaction.reply(output);
+        // } else if (typeof output === 'object' && Array.isArray(output) && output.length > 0) {
+        //     for (let i = 0; i < output.length; i++) {
+        //         interaction.channel.send(output[i]);
+        //     }
+        // }
     }
 
     static help() {
@@ -79,7 +68,7 @@ class Command {
     /**
      * Play a random sound in the channel where the author is
      * @param {GuildPlayer} player The sound player instance for the Guild
-     * @param {*} message Message of the command
+     * @param {ChatInputCommandInteraction} interaction Message of the command
      * @returns
      */
     static test(player, message) {
@@ -96,7 +85,7 @@ class Command {
         }
     }
 
-    static next(player, message) {
+    static next(player) {
         if (!player.started) {
             return 'Je ne suis pas démarrer. Pour le faire, lance la commande `!gla start`';
         }
@@ -166,42 +155,52 @@ class Command {
         return output;
     }
 
-    static debug(player, message, args) {
-        var userId = message.member.user.id;
+    static debug(player, interaction) {
+        const userId = interaction.member.user.id;
+        const option = interaction.options.get('option');
+        console.log(option);
         if (userId.toString() !== config.get('creatorId')) {
             return 'Seul mon créateur peut accéder à cette commande.';
         }
-        if (args[0] === 'play') {
-            player.target.play();
-            return 'Forcing the next song to play.';
-        } if (args[0] === 'getUserId') {
-            return 'Your user id is ' + userId
+        if (option && option.value) {
+            if (option.value === 'play') {
+                player.target.play();
+                return 'Forcing the next song to play.';
+            } else if (option.value === 'getUserId') {
+                return 'Your user id is ' + userId;
+            }
         }
+        return 'Wrong option';
     }
 
-    static play(player, message, args) {
+    static play(player, interaction) {
         var binds = player.cache.pull('binds', {});
         var sounds = player.getSounds().map(sound => sound.replace('.mp3', ''));
-        if (Object.keys(binds).indexOf(args[0]) < 0) {
-            return 'Aucun son associé à '+args[0]+'.';
+        var key = interaction.options.get('key');
+        var channel = interaction.options.get('channel');
+
+        if (!key) {
+            return 'Usage : /gla play [key]';
         }
 
-        if (sounds.indexOf(binds[args[0]]) < 0) {
-            return 'Le son associé à '+args[0]+' n\'existe plus.';
+        key = key.value;
+        if (Object.keys(binds).indexOf(key) < 0) {
+            return 'Aucun son associé à '+key+'.';
+        } else if (sounds.indexOf(binds[key]) < 0) {
+            return 'Le son associé à '+key+' n\'existe plus.';
         }
 
-        var path = player.soundDir + binds[args[0]] + '.mp3';
-        console.log(path);
-        if (typeof args[1] !== 'undefined') {
+        var path = player.soundDir + binds[key] + '.mp3';
+        if (channel) {
             var ret = player.targetChannel(args[1], path);
         } else {
             console.log('targetMember');
-            var ret = player.targetMember(message.member, path);
+            var ret = player.targetMember(interaction.member, path);
         }
 
         if (typeof ret === 'number') {
             if (ret === GuildPlayer.eCantFindMember) {
-                return 'Impossible de trouver ' + message.member.displayName;
+                return 'Impossible de trouver ' + interaction.member.displayName;
             } else if (ret === GuildPlayer.eChannelPermissions) {
                 return 'Permission insufisante pour entrer dans le channel.';
             }
@@ -214,20 +213,21 @@ class Command {
     /**
      *
      * @param {GuildPlayer} player
-     * @param {string} message
-     * @param {Array} args
+     * @param {ChatInputCommandInteraction} interaction
      */
-    static bind(player, message, args) {
+    static bind(player, interaction) {
         var binds = player.cache.pull('binds', {});
-        var key = args[0];
-        var sound = args[1];
+        var key = interaction.options.get('key');
+        var sound = interaction.options.get('sound');
         var message = '';
         var sounds = player.getSounds().map(sound => sound.replace('.mp3', ''));
-        if (args.length < 2) {
-            return 'Usage : !gla bind [bind_name] [song_name/song_index]';
+        if (!key || !sound) {
+            return 'Usage : /gla bind [bind_name] [song_name/song_index]';
         }
+        sound = sound.value;
+        key = key.value;
         if (typeof sounds[sound] !== "string" && sounds.indexOf(sound) < 0) {
-            return 'Impossible de trouver le son "'+sound+'". Utiliser la commande `!gla listsongs` pour lister les sons disponnibles';
+            return 'Impossible de trouver le son "'+sound+'". Utiliser la commande `/gla listsongs` pour lister les sons disponnibles';
         }
         if (typeof binds[key] === 'string') {
             message = 'Le bind "'+key+'" a été remplacé avec succès';
@@ -235,9 +235,7 @@ class Command {
             message = 'Le bind "'+key+'" a été créé avec succès';
         }
 
-
         // Convert the bind by index to a bind by song name
-        console.log(typeof sounds[sound]);
         if (typeof sounds[sound] === "string") {
             sound = sounds[sound];
         }
@@ -248,7 +246,34 @@ class Command {
         return message
     }
 
-    static listsounds(player, message, args) {
+    /**
+     *
+     * @param {GuildPlayer} player
+     * @param {ChatInputCommandInteraction} interaction
+     */
+    static unbind(player, interaction) {
+        var binds = player.cache.pull('binds', {});
+        var key = interaction.options.get('key');
+        var message = '';
+
+        if (!key) {
+            return 'Usage : /gla unbind [bind_name]';
+        }
+        key = key.value;
+
+        if (typeof binds[key] === 'string') {
+            delete binds[key];
+            message = 'Le bind "'+key+'" a été supprimé avec succès';
+        } else {
+            message = 'Le bind "'+key+'" n\'existe pas';
+        }
+
+        player.cache.push('binds', binds);
+
+        return message;
+    }
+
+    static listsounds(player, message) {
         var message = 'Liste des sons :\n';
         var sounds = player.getSounds();
         if (sounds.length === 0) {
@@ -263,7 +288,7 @@ class Command {
         return message;
     }
 
-    static listbinds(player, message, args) {
+    static listbinds(player, message) {
         var message = 'Liste des binds :\n';
         var binds = player.cache.pull('binds', {});
         if (Object.keys(binds).length === 0) {

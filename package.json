@@ -5,15 +5,21 @@
   "main": "main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "deploy": "node deploy-commands.js",
     "start": "node main.js"
   },
   "author": "GrosBalek",
   "license": "ISC",
   "dependencies": {
     "@discordjs/opus": "^0.3.3",
-    "discord.js": "^12.5.1",
+    "@discordjs/voice": "^0.11.0",
+    "discord.js": "^14.4.0",
     "ffmpeg-static": "^4.2.7",
+    "libsodium-wrappers": "^0.7.10",
     "moment": "^2.29.1",
     "mp3-duration": "^1.1.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.23.1"
   }
 }

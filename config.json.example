@@ -1,8 +1,10 @@
 {
+    "env": "dev",
     "lang": "fr",
-    "botToken": "xxxxxxxxxx",
+    "clientId": "11111111111111111111",
+    "botToken": "xxxxxxx",
     "soundDir": "./sounds",
-    "creatorId": "123",
-    "defaultMinTime": 60,
-    "defaultMaxTime": 120
+    "creatorId": "111111111111111",
+    "defaultMinTime": 600,
+    "defaultMaxTime": 3600
 }

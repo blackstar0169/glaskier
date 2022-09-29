@@ -1,4 +1,4 @@
-const {Collection, VoiceChannel} = require('discord.js');
+const {Collection, VoiceChannel, ChannelType} = require('discord.js');
 const moment = require('moment');
 const config = require('./config.js');
 const Target = require('./Target.js');
@@ -147,7 +147,7 @@ class GuildPlayer {
     targetMember(member, soundPath) {
         // Find the VoiceChannel where the author is.
         var memberChannel = this.guild.channels.cache.find((channel) => {
-            return channel.type === 'voice' && channel.members.find((m) => {
+            return channel instanceof VoiceChannel && channel.members.find((m) => {
                 return m.id === member.id;
             });
         });
@@ -166,8 +166,6 @@ class GuildPlayer {
      * number if it failed.
      */
     targetChannel(channel, soundPath) {
-        console.log('target');
-
         // If we can play sound in the channel
         if (channel instanceof VoiceChannel &&
             channel.joinable &&

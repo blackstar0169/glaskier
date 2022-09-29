@@ -1,4 +1,25 @@
 const config = require("./config");
+const {
+	joinVoiceChannel,
+	entersState,
+	VoiceConnectionStatus,
+} = require('@discordjs/voice');
+
+async function connectToChannel(channel) {
+    const connection = joinVoiceChannel({
+        channelId: channel.id,
+        guildId: channel.guild.id,
+        adapterCreator: channel.guild.voiceAdapterCreator,
+    });
+
+    try {
+        await entersState(connection, VoiceConnectionStatus.Ready, 3e3);
+        return connection;
+    } catch (error) {
+        connection.destroy();
+        throw error;
+    }
+}
 
 module.exports = {
     findPlayerByGuild: (guild, players) => {
@@ -45,3 +66,4 @@ module.exports = {
         return env === 'prod' || env === 'production';
     }
 }
+module.exports.connectToChannel = connectToChannel;

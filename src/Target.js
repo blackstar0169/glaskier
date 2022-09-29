@@ -1,7 +1,8 @@
 const { VoiceChannel } = require('discord.js');
+const { createAudioResource, createAudioPlayer } = require('@discordjs/voice');
 const mp3Duration = require('mp3-duration');
 const moment = require('moment');
-const { random, empty } = require('./utils.js');
+const { random, empty, connectToChannel } = require('./utils.js');
 const fs = require('fs');
 const { EventEmitter } = require('events');
 const config = require('./config.js');
@@ -31,14 +32,14 @@ class Target extends EventEmitter {
 
         if (typeof timeout === 'number' && timeout >= 0) {
             this.timeoutDate = moment().add(timeout, 'seconds');
-            this.timeout = this.client.setTimeout(() => {
+            this.timeout = setTimeout(() => {
                 this.play();
             }, timeout * 1000);
         }
     }
 
     cancel() {
-        this.client.clearTimeout(this.timeout);
+        clearTimeout(this.timeout);
         this.timeout = null;
         this.channel = null;
         this.timeoutDate = null;
@@ -101,26 +102,44 @@ class Target extends EventEmitter {
         }
 
         // Play the sound
-        return this.channel.join().then((connection) => {
-            var now = new Date();
-            console.log('[' + now.toISOString() + '] ' + this.soundPath);
-            connection.play(this.soundPath);
+        var now = new Date();
+        console.log('[' + now.toISOString() + '] ' + this.soundPath);
 
-            // Get the sound duration to disconnect at the end of it
-            mp3Duration(this.soundPath, (err, duration) => {
-                if (err) {
-                    console.error(err.message);
-                    duration = 10000;
+        // Get the sound duration to disconnect at the end of it
+        mp3Duration(this.soundPath, async (err, duration) => {
+            if (err) {
+                console.error(err.message);
+                duration = 10e3;
+            }
+            const resource = createAudioResource(this.soundPath);
+            const player = createAudioPlayer();
+            var connection = null;
+            var subscription = null;
+            player.play(resource);
+            try {
+                connection = await connectToChannel(this.channel);
+                subscription = connection.subscribe(player);
+            } catch (error) {
+                if (connection) {
+                    connection.destroy();
                 }
-                this.channel.client.setTimeout(() => {
-                    connection.disconnect();
-                    this.emit('played', this.channel, this.soundPath);
-                    this.timeout = null;
-                    this.timeoutDate = null;
-                    this.channel = null;
-                }, duration * 1000);
-            });
-        }).catch(console.error);
+                console.error(error);
+                return;
+            }
+
+            setTimeout(() => {
+                if (subscription) {
+                    subscription.unsubscribe();
+                }
+                if (connection) {
+                    connection.destroy();
+                }
+                this.emit('played', this.channel, this.soundPath);
+                this.timeout = null;
+                this.timeoutDate = null;
+                this.channel = null;
+            }, duration * 1000);
+        });
     }
 
     triggerError(error) {
