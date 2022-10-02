@@ -1,3 +1,6 @@
+console.log('Running NodeJS '+process.version);
+console.log('CWD : '+process.cwd());
+
 const fs = require('fs');
 const {Client, GatewayIntentBits} = require('discord.js');
 const GuildPlayer = require('./src/GuildPlayer.js');
