@@ -31,6 +31,13 @@ try {
     process.exit(2);
 }
 
+process.on('SIGINT', function() {
+    db.stop(function(err) {
+        console.error("Process stoped with status :", e);
+
+        process.exit(err ? 1 : 0)
+    })
+})
 
 //Toutes les actions à faire quand le bot se connecte
 client.on('ready', () => {
@@ -39,6 +46,7 @@ client.on('ready', () => {
         players.push(new GuildPlayer(guild));
         console.log(guild.name);
     });
+    process.send('ready');
 })
 
 client.on('interactionCreate', async interaction => {
