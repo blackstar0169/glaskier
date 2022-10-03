@@ -76,13 +76,18 @@ const command = new SlashCommandBuilder()
     )
     .addSubcommand(subcommand =>
         subcommand
-            .setName('listsounds')
+            .setName('list-sounds')
             .setDescription('List sounds')
     )
     .addSubcommand(subcommand =>
         subcommand
-            .setName('listbinds')
+            .setName('list-binds')
             .setDescription('List binds')
+    )
+    .addSubcommand(subcommand =>
+        subcommand
+            .setName('list-channels')
+            .setDescription('List voice channels')
     );
 
 

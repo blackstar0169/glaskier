@@ -64,6 +64,10 @@ module.exports = {
     isProd: () => {
         var env = config.get('env', 'dev');
         return env === 'prod' || env === 'production';
+    },
+
+    camelize: (s) => {
+        return s.replace(/-./g, x => x[1].toUpperCase());
     }
 }
 module.exports.connectToChannel = connectToChannel;

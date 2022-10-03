@@ -1,8 +1,8 @@
 const config = require('./config.js');
-const { ChatInputCommandInteraction, CommandInteractionOption } = require('discord.js');
+const { ChatInputCommandInteraction, CommandInteractionOption, VoiceChannel } = require('discord.js');
 
 const GuildPlayer = require('./GuildPlayer.js');
-const {chunk, log} = require('./utils.js');
+const {chunk, log, camelize} = require('./utils.js');
 
 class Command {
     static commands = {
@@ -32,17 +32,14 @@ class Command {
      * @returns boolean
      */
     static exec(interaction, player) {
-        const command = interaction.options.getSubcommand();
+        const command = camelize(interaction.options.getSubcommand());
         const args = interaction.options.data.options;
         // Call the function of the command
-        // log(interaction.member.displayName + ' run command ' + command);
         const output = this[command](player, interaction, args);
         if (typeof output === 'string' && output.length > 0) {
             interaction.reply(output);
         } else if (typeof output === 'object' && Array.isArray(output) && output.length > 0) {
-            for (let i = 0; i < output.length; i++) {
-                interaction.channel.send(output[i]);
-            }
+            interaction.reply('Réponse incorrecte');
         }
     }
 
@@ -57,10 +54,6 @@ class Command {
         }
 
         return output;
-    }
-
-    static displayBadCommand(channel) {
-        return channel.isText && channel.send('Erreur d\'utilisation de la commande !gla. Executez la command `!gla help` pour en savoir plus.');
     }
 
     /**
@@ -188,9 +181,22 @@ class Command {
             return 'Le son associé à '+key+' n\'existe plus.';
         }
 
+
         var path = player.soundDir + binds[key] + '.mp3';
         if (channel) {
-            var ret = player.targetChannel(args[1], path);
+            // Find channel
+            var index = 0;
+            channel = channel.value;
+            const target = interaction.guild.channels.cache.find((c) => {
+                const ret = c instanceof VoiceChannel && (c.name === channel || index === channel);
+                index++;
+                return ret;
+            });
+
+            if (!target) {
+                return 'Impossible de trouver le salon "'+channel+'".';
+            }
+            var ret = player.targetChannel(target, path);
         } else {
             var ret = player.targetMember(interaction.member, path);
         }
@@ -270,7 +276,7 @@ class Command {
         return message;
     }
 
-    static listsounds(player, message) {
+    static listSounds(player, interaction) {
         var message = 'Liste des sons :\n';
         var sounds = player.getSounds();
         if (sounds.length === 0) {
@@ -285,7 +291,7 @@ class Command {
         return message;
     }
 
-    static listbinds(player, message) {
+    static listBinds(player, interaction) {
         var message = 'Liste des binds :\n';
         var binds = player.cache.pull('binds', {});
         if (Object.keys(binds).length === 0) {
@@ -296,6 +302,19 @@ class Command {
                 message += key + ' : ' + binds[key] + '\n';
             }
         }
+
+        return message;
+    }
+
+    static listChannels(player, interaction) {
+        var message = 'Liste des salons vocaux :\n';
+        var index = 0;
+        interaction.guild.channels.cache.forEach((channel) => {
+            if(channel instanceof VoiceChannel) {
+                message += index+': '+channel.name+'\n';
+                index++;
+            }
+        });
 
         return message;
     }
