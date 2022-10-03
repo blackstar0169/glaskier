@@ -89,7 +89,7 @@ class GuildPlayer {
         this.history.push(
             '[' + moment().format('DD/MM/YYYY HH:mm:ss') + '] Channel : ' +
             channel.name +
-            ' | Membres : ' + channel.members.filter(m => m.id !== this.guild.me.id).map(m => m.displayName).join(', ') +
+            ' | Membres : ' + channel.members.filter(m => m.id !== this.guild.members.me.id).map(m => m.displayName).join(', ') +
             ' | Son : ' + path.basename(soundfile)
         );
 
