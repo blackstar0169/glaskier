@@ -17,9 +17,9 @@ class Command {
         'history': 'List the last 50 glitch',
         'debug': 'Debug command. Only available for the creator.',
         'play': '[key] [channel?] Play a binded song if there is a key or a random song.',
-        'bind': '[key] [song name or index] Bind a key to a song',
+        // 'bind': '[key] [song name or index] Bind a key to a song',
         'listsounds': 'List songs.',
-        'listbinds': 'List binds.',
+        // 'listbinds': 'List binds.',
         // 'log': 'Display debug logs',
     }
 
@@ -31,15 +31,28 @@ class Command {
      * @param {GuildPlayer} player
      * @returns boolean
      */
-    static exec(interaction, player) {
+    static async exec(interaction, player) {
         const command = camelize(interaction.options.getSubcommand());
         const args = interaction.options.data.options;
         // Call the function of the command
         const output = this[command](player, interaction, args);
+        try {
+            await interaction.reply('Chargement...');
+        } catch (e) {
+            // Do nothing... Random Unknown interaction error
+        }
         if (typeof output === 'string' && output.length > 0) {
-            interaction.reply(output);
+            try {
+                await interaction.editReply(output);
+            } catch (e) {
+                // Do nothing... Random Unknown interaction error
+            }
         } else if (typeof output === 'object' && Array.isArray(output) && output.length > 0) {
-            interaction.reply('Réponse incorrecte');
+            try {
+                await interaction.editReply('Réponse incorrecte');
+            } catch (e) {
+                // Do nothing... Random Unknown interaction error
+            }
         }
     }
 
@@ -165,7 +178,6 @@ class Command {
     }
 
     static play(player, interaction) {
-        var binds = player.cache.pull('binds', {});
         var sounds = player.getSounds().map(sound => sound.replace('.mp3', ''));
         var key = interaction.options.get('key');
         var channel = interaction.options.get('channel');
@@ -175,14 +187,18 @@ class Command {
         }
 
         key = key.value;
-        if (Object.keys(binds).indexOf(key) < 0) {
+        // console.log(sounds);
+        // console.log(Object.keys(sounds).indexOf(key));
+        if (sounds.indexOf(key) >= 0) {
+            key = sounds.indexOf(key);
+        } else if (typeof sounds[key] === 'undefined') {
             return 'Aucun son associé à '+key+'.';
-        } else if (sounds.indexOf(binds[key]) < 0) {
-            return 'Le son associé à '+key+' n\'existe plus.';
         }
 
 
-        var path = player.soundDir + binds[key] + '.mp3';
+        var path = player.soundDir + sounds[key] + '.mp3';
+        // console.log(path);
+        // return 'OK';
         if (channel) {
             // Find channel
             var index = 0;
@@ -214,7 +230,7 @@ class Command {
     }
 
     /**
-     *
+     * Not used anymore
      * @param {GuildPlayer} player
      * @param {ChatInputCommandInteraction} interaction
      */
@@ -250,7 +266,7 @@ class Command {
     }
 
     /**
-     *
+     * Not used anymore
      * @param {GuildPlayer} player
      * @param {ChatInputCommandInteraction} interaction
      */
@@ -291,6 +307,12 @@ class Command {
         return message;
     }
 
+    /**
+     * Not used anymore
+     * @param {GuildPlayer} player
+     * @param {ChatInputCommandInteraction} interaction
+     * @returns
+     */
     static listBinds(player, interaction) {
         var message = 'Liste des binds :\n';
         var binds = player.cache.pull('binds', {});

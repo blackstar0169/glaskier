@@ -61,28 +61,28 @@ const command = new SlashCommandBuilder()
             .addStringOption(option => option.setName('key').setDescription('The binded key').setRequired(true))
             .addStringOption(option => option.setName('channel').setDescription('The where to play the sound'))
     )
-    .addSubcommand(subcommand =>
-        subcommand
-            .setName('bind')
-            .setDescription('Bind a key to a sound')
-            .addStringOption(option => option.setName('key').setDescription('The key name (without space)').setRequired(true))
-            .addStringOption(option => option.setName('sound').setDescription('Sound name or index').setRequired(true))
-    )
-    .addSubcommand(subcommand =>
-        subcommand
-            .setName('unbind')
-            .setDescription('Unind a key to a sound')
-            .addStringOption(option => option.setName('key').setDescription('The key name (without space)').setRequired(true))
-    )
+    // .addSubcommand(subcommand =>
+    //     subcommand
+    //         .setName('bind')
+    //         .setDescription('Bind a key to a sound')
+    //         .addStringOption(option => option.setName('key').setDescription('The key name (without space)').setRequired(true))
+    //         .addStringOption(option => option.setName('sound').setDescription('Sound name or index').setRequired(true))
+    // )
+    // .addSubcommand(subcommand =>
+    //     subcommand
+    //         .setName('unbind')
+    //         .setDescription('Unind a key to a sound')
+    //         .addStringOption(option => option.setName('key').setDescription('The key name (without space)').setRequired(true))
+    // )
+    // .addSubcommand(subcommand =>
+    //     subcommand
+    //         .setName('list-binds')
+    //         .setDescription('List binds')
+    // )
     .addSubcommand(subcommand =>
         subcommand
             .setName('list-sounds')
             .setDescription('List sounds')
-    )
-    .addSubcommand(subcommand =>
-        subcommand
-            .setName('list-binds')
-            .setDescription('List binds')
     )
     .addSubcommand(subcommand =>
         subcommand
