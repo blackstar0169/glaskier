@@ -5,7 +5,7 @@ import globals from "globals";
 
 export default defineConfig([
 	{
-        files: ["src/**/*.js"],
+        files: ["main.js", "deploy-commands.js", "src/**/*.js"],
 		plugins: {
 			js,
             '@stylistic': stylistic
