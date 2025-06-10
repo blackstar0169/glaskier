@@ -3,10 +3,10 @@ const fs = require('fs');
 class Cache {
     constructor(id) {
         this.dir = './cache/';
-        this.file = id
-        this.values = {}
+        this.file = id;
+        this.values = {};
         if (!fs.existsSync(this.dir)) {
-            console.error("Storage dir does not exists");
+            console.error('Storage dir does not exists');
             process.exit(3);
         }
         // Load cache file if it exists
@@ -20,7 +20,7 @@ class Cache {
     }
 
     pull(key, def) {
-        if(Object.keys(this.values).indexOf(key) >= 0) {
+        if (Object.keys(this.values).indexOf(key) >= 0) {
             return this.values[key];
         }
         return def;
@@ -32,8 +32,8 @@ class Cache {
     }
 
     forget(key) {
-        if(Object.keys(this.values).indexOf(key) >= 0) {
-            delete this.values[key]
+        if (Object.keys(this.values).indexOf(key) >= 0) {
+            delete this.values[key];
         }
         this.save();
     }

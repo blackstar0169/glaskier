@@ -1,8 +1,8 @@
-const config = require("./config");
+const config = require('./config');
 const {
-	joinVoiceChannel,
-	entersState,
-	VoiceConnectionStatus,
+    joinVoiceChannel,
+    entersState,
+    VoiceConnectionStatus,
 } = require('@discordjs/voice');
 
 async function connectToChannel(channel) {
@@ -15,7 +15,8 @@ async function connectToChannel(channel) {
     try {
         await entersState(connection, VoiceConnectionStatus.Ready, 3e3);
         return connection;
-    } catch (error) {
+    }
+    catch (error) {
         connection.destroy();
         throw error;
     }
@@ -23,12 +24,12 @@ async function connectToChannel(channel) {
 
 module.exports = {
     findPlayerByGuild: (guild, players) => {
-        var id = guild;
+        let id = guild;
         if (typeof guild === 'object' && typeof guild.id !== 'undefined') {
-            id = guild.id
+            id = guild.id;
         }
 
-        for (var i = 0; i < players.length; i++) {
+        for (let i = 0; i < players.length; i++) {
             // Remove players attached to the guild
             if (id === players[i].guild.id) {
                 return players[i];
@@ -48,26 +49,26 @@ module.exports = {
     },
 
     chunk: (array, chunkSize) => {
-        var i, j;
-        var temparray = [];
-        for (i=0 , j = array.length; i < j; i += chunkSize) {
-            temparray.push(array.slice(i, i+chunkSize));
+        let i, j;
+        const temparray = [];
+        for (i = 0, j = array.length; i < j; i += chunkSize) {
+            temparray.push(array.slice(i, i + chunkSize));
         }
         return temparray;
     },
 
     log: (str) => {
-        var now = new Date();
+        const now = new Date();
         console.log('[' + now.toISOString() + '] ' + str);
     },
 
     isProd: () => {
-        var env = config.get('env', 'dev');
+        const env = config.get('env', 'dev');
         return env === 'prod' || env === 'production';
     },
 
     camelize: (s) => {
         return s.replace(/-./g, x => x[1].toUpperCase());
-    }
-}
+    },
+};
 module.exports.connectToChannel = connectToChannel;

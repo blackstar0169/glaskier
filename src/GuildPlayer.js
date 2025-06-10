@@ -1,11 +1,11 @@
-const {Collection, VoiceChannel, ChannelType} = require('discord.js');
+const { Collection, VoiceChannel } = require('discord.js');
 const moment = require('moment');
 const config = require('./config.js');
 const Target = require('./Target.js');
 const Cache = require('./Cache.js');
 const fs = require('fs');
 const path = require('path');
-const {random} = require('./utils.js');
+const { random } = require('./utils.js');
 
 const eCantFindMember = 1;
 const eChannelPermissions = 1;
@@ -30,7 +30,7 @@ class GuildPlayer {
         this.soundDir = config.get('soundDir').replace(/\/$/, '');
         // Add trailing salsh to sound dir
         this.soundDir = fs.realpathSync(this.soundDir);
-        if(this.soundDir.substr(-1) !== '/') {
+        if (this.soundDir.substr(-1) !== '/') {
             this.soundDir += '/';
         }
 
@@ -67,15 +67,16 @@ class GuildPlayer {
         this.target = new Target(
             null,
             this,
-            random(this.minLimit, this.maxLimit)
+            random(this.minLimit, this.maxLimit),
         );
 
         // Generate a new target after it has been played
         this.target.on('played', (channel, soundfile) => {
-            this.addHistory(channel, soundfile)
+            this.addHistory(channel, soundfile);
             this.planNextPlay();
         });
         // Plan next play if the current play failed
+        // eslint-disable-next-line no-unused-vars
         this.target.on('error', (channel, soundfile) => {
             // @todo : Log cancel
             this.planNextPlay();
@@ -90,7 +91,7 @@ class GuildPlayer {
             '[' + moment().format('DD/MM/YYYY HH:mm:ss') + '] Channel : ' +
             channel.name +
             ' | Membres : ' + channel.members.filter(m => m.id !== this.guild.members.me.id).map(m => m.displayName).join(', ') +
-            ' | Son : ' + path.basename(soundfile)
+            ' | Son : ' + path.basename(soundfile),
         );
 
         // Limit history size
@@ -102,11 +103,11 @@ class GuildPlayer {
     scanChannels() {
         // Get available voice channels in which we can play sound.
         this.availableChannels = this.guild.channels.cache
-                                .filter((channel) => {
-                                    return channel instanceof VoiceChannel &&
+            .filter((channel) => {
+                return channel instanceof VoiceChannel &&
                                         channel.speakable &&
-                                        channel.members.size
-                                });
+                                        channel.members.size;
+            });
 
         return this.availableChannels;
     }
@@ -146,7 +147,7 @@ class GuildPlayer {
      */
     targetMember(member, soundPath) {
         // Find the VoiceChannel where the author is.
-        var memberChannel = this.guild.channels.cache.find((channel) => {
+        const memberChannel = this.guild.channels.cache.find((channel) => {
             return channel instanceof VoiceChannel && channel.members.find((m) => {
                 return m.id === member.id;
             });
@@ -172,11 +173,12 @@ class GuildPlayer {
             channel.speakable &&
             channel.members.size
         ) {
-            var target = new Target(channel, this);
+            const target = new Target(channel, this);
             target.setSound(soundPath);
             target.play();
             return target;
-        } else {
+        }
+        else {
             return eChannelPermissions;
         }
     }

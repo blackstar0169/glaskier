@@ -2,13 +2,13 @@
 class Config {
     config = {};
     default = {
-        "lang": "en",
-        "soundDir": "./sounds",
+        'lang': 'en',
+        'soundDir': './sounds',
     };
     required = [
         'lang',
         'botToken',
-        'soundDir'
+        'soundDir',
     ];
 
     /**
@@ -17,9 +17,9 @@ class Config {
      * @return {boolean}
      */
     init(config) {
-        var errors = this.validate(config);
+        const errors = this.validate(config);
         if (errors.length === 0) {
-            this.config = Object.assign({}, this.default, config)
+            this.config = Object.assign({}, this.default, config);
             return true;
         }
 
@@ -36,7 +36,7 @@ class Config {
      * @returns {object} Array of missing attributes
      */
     validate(config) {
-        var missing = [];
+        const missing = [];
         for (let i = 0; i < this.required.length; i++) {
             if (typeof config[this.required[i]] === 'undefined' || config[this.required[i]] === null || config[this.required[i]] === '') {
                 missing.push(this.required[i]);

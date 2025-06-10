@@ -5,7 +5,6 @@ const moment = require('moment');
 const { random, empty, connectToChannel } = require('./utils.js');
 const fs = require('fs');
 const { EventEmitter } = require('events');
-const config = require('./config.js');
 
 class Target extends EventEmitter {
     /**
@@ -23,9 +22,11 @@ class Target extends EventEmitter {
 
         if (channel !== null) {
             this.client = channel.client;
-        } else if (channel === null && !empty(player)) {
+        }
+        else if (channel === null && !empty(player)) {
             this.client = player.guild.client;
-        } else {
+        }
+        else {
             this.triggerError('Bad Target object construction. You must give a Channel or at lease a GuildPlayer object.');
             return null;
         }
@@ -64,14 +65,18 @@ class Target extends EventEmitter {
         if (!this.isValid()) {
             if (!(this.channel instanceof VoiceChannel)) {
                 this.triggerError('Channel instance invalide pour ' + this.player.guild.name + '/' + this.channel.name);
-            } else if (!this.channel.speakable) {
+            }
+            else if (!this.channel.speakable) {
                 this.triggerError('Le bot ne peut pas parler dans le channel ' + this.player.guild.name + '/' + this.channel.name);
-            } else if (!this.channel.joinable) {
+            }
+            else if (!this.channel.joinable) {
                 console.trace('error');
                 this.triggerError('Le bot ne peut pas aller dans le channel ' + this.player.guild.name + '/' + this.channel.name);
-            } else if (this.channel.members.size === 0) {
+            }
+            else if (this.channel.members.size === 0) {
                 this.triggerError('Aucun membre présent dans ' + this.player.guild.name + '/' + this.channel.name);
-            } else {
+            }
+            else {
                 this.triggerError('Erreur indéterminée pour accèder à ' + this.player.guild.name + '/' + this.channel.name);
             }
             return false;
@@ -79,30 +84,31 @@ class Target extends EventEmitter {
 
         // Get a sound file
         if (typeof this.soundPath !== 'string' || this.soundPath.length === 0) {
-            var soundFiles = this.player.getSounds();
+            const soundFiles = this.player.getSounds();
             if (soundFiles.length === 0) {
                 this.triggerError('Dossier audio vide.');
                 return false;
             }
-            var index = random(0, soundFiles.length - 1);
+            const index = random(0, soundFiles.length - 1);
             this.soundPath = fs.realpathSync(this.player.soundDir + soundFiles[index]);
         }
 
-        if(typeof this.soundPath !== 'string' || !fs.existsSync(this.soundPath)){
+        if (typeof this.soundPath !== 'string' || !fs.existsSync(this.soundPath)) {
             this.triggerError('Fichier audio inexistant : ' + this.soundPath);
             return false;
         }
 
         try {
             fs.accessSync(this.soundPath, fs.R_OK);
-        } catch (err) {
+        }
+        catch (err) {
             console.log(err);
             this.triggerError('Accès refusé au fichier audio : ' + this.soundPath);
             return false;
         }
 
         // Play the sound
-        var now = new Date();
+        const now = new Date();
         console.log('[' + now.toISOString() + '] ' + this.soundPath);
 
         // Get the sound duration to disconnect at the end of it
@@ -113,13 +119,14 @@ class Target extends EventEmitter {
             }
             const resource = createAudioResource(this.soundPath);
             const player = createAudioPlayer();
-            var connection = null;
-            var subscription = null;
+            let connection = null;
+            let subscription = null;
             player.play(resource);
             try {
                 connection = await connectToChannel(this.channel);
                 subscription = connection.subscribe(player);
-            } catch (error) {
+            }
+            catch (error) {
                 if (connection) {
                     connection.destroy();
                 }
@@ -144,7 +151,7 @@ class Target extends EventEmitter {
 
     triggerError(error) {
         if (error) {
-            console.error(error)
+            console.error(error);
         }
         this.emit('error', this, error);
     }
@@ -153,7 +160,7 @@ class Target extends EventEmitter {
         return this.channel instanceof VoiceChannel &&
             this.channel.joinable &&
             this.channel.speakable &&
-            this.channel.members.size > 0
+            this.channel.members.size > 0;
     }
 }
 
