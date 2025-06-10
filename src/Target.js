@@ -115,8 +115,9 @@ class Target extends EventEmitter {
         mp3Duration(this.soundPath, async (err, duration) => {
             if (err) {
                 console.error(err.message);
-                duration = 10e3;
+                return;
             }
+            duration += 1;
             const resource = createAudioResource(this.soundPath);
             const player = createAudioPlayer();
             let connection = null;
