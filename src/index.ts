@@ -1,13 +1,12 @@
 console.log('Running NodeJS ' + process.version);
 console.log('CWD : ' + process.cwd());
 
-const fs = require('fs');
-const { Client, GatewayIntentBits } = require('discord.js');
-const GuildPlayer = require('./src/GuildPlayer.js');
-const { findPlayerByGuild } = require('./src/utils.js');
-const Command = require('./src/Command.js');
-const config = require('./src/config.js');
-const { isProd } = require('./src/utils.js');
+import fs from 'fs';
+import { Client, GatewayIntentBits } from 'discord.js';
+import GuildPlayer from './GuildPlayer.js';
+import { findPlayerByGuild } from './utils.js';
+import Command from './Command.js';
+import { config } from './Config';
 
 const client = new Client({
     intents: [
@@ -22,21 +21,22 @@ const players = [];
 
 
 // Read config
-if (!fs.existsSync('config.json')) {
-    console.error('Config file ' + process.cwd() + '/config.json not found.');
+if (!fs.existsSync('.env')) {
+    console.error('Env file ' + process.cwd() + '/.env not found.');
     process.exit(1);
 }
 
 try {
-    config.init(JSON.parse(fs.readFileSync('config.json')));
+    config.init();
 }
 catch (e) {
-    console.error('Config file parsing error:', e);
+    console.error('.env file parsing error', e);
     process.exit(2);
 }
 
 process.on('SIGINT', function() {
     console.error('Process stopped');
+    process.exit(1);
 });
 
 // Toutes les actions à faire quand le bot se connecte
@@ -55,7 +55,8 @@ client.on('interactionCreate', async interaction => {
     if (!interaction.isChatInputCommand()) return;
 
     if (interaction.commandName === 'gla') {
-        if (!isProd() && interaction.member.id !== config.get('creatorId')) {
+        const memberId = interaction.member.user.id;
+        if (!config.isProd() && memberId !== config.get('creatorId')) {
             interaction.channel.send(':warning: Je suis en maintenance.');
         }
         else {
@@ -88,5 +89,4 @@ client.on('guildDelete', (guild) => {
     }
 });
 
-client.login(config.get('botToken'));
-
+client.login(config.get('discordToken'));

@@ -1,10 +1,10 @@
-const config = require('./config.js');
-const { VoiceChannel } = require('discord.js');
+import { config } from './Config';
+import { VoiceChannel } from 'discord.js';
 
-const GuildPlayer = require('./GuildPlayer.js');
-const { chunk, camelize } = require('./utils.js');
+import GuildPlayer from './GuildPlayer';
+import { chunk, camelize } from './utils';
 
-class Command {
+export default class Command {
     static commands = {
         'help' : 'List commands',
         // 'setMinTime': '[number] Set the minimum random time in seconds',
@@ -161,13 +161,13 @@ class Command {
             return 'Aucune intervention depuis le lancement du serveur.';
         }
         const history = chunk(player.history, 10);
-        const output = ['Les ' + player.history.length + ' dernières interventions : \n```\n' + history[0].join('\n') + '\n```'];
+        const output: string[] = ['Les ' + player.history.length + ' dernières interventions : \n```\n' + history[0].join('\n') + '\n```'];
         for (let i = 1; i < history.length; i++) {
-            output.push([
+            output.push(
                 '```\n' + history[i].join('\n') + '\n```',
-            ]);
+            );
         }
-        return output;
+        return output.join('\n');
     }
 
     static debug(player, interaction) {
@@ -200,8 +200,6 @@ class Command {
         }
 
         key = key.value;
-        // console.log(sounds);
-        // console.log(Object.keys(sounds).indexOf(key));
         if (sounds.indexOf(key) >= 0) {
             key = sounds.indexOf(key);
         }
@@ -211,8 +209,6 @@ class Command {
 
 
         const path = player.soundDir + sounds[key] + '.mp3';
-        // console.log(path);
-        // return 'OK';
         if (channel) {
             // Find channel
             let index = 0;
@@ -368,5 +364,3 @@ class Command {
         return message;
     }
 }
-
-module.exports = Command;

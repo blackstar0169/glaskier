@@ -1,19 +1,25 @@
-const { VoiceChannel } = require('discord.js');
-const { createAudioResource, createAudioPlayer } = require('@discordjs/voice');
-const mp3Duration = require('mp3-duration');
-const moment = require('moment');
-const { random, empty, connectToChannel } = require('./utils.js');
-const fs = require('fs');
-const { EventEmitter } = require('events');
+import { VoiceChannel } from 'discord.js';
+import { createAudioResource, createAudioPlayer } from '@discordjs/voice';
+import mp3Duration from 'mp3-duration';
+import moment from 'moment';
+import { random, empty, connectToChannel } from './utils.js';
+import fs from 'fs';
+import CanEmmitErrors from './Contracts/CanEmmitErrors.js';
+import GuildPlayer from './GuildPlayer.js';
 
-class Target extends EventEmitter {
+export default class Target extends CanEmmitErrors {
+    protected channel: VoiceChannel | null;
+    protected timeoutDate: moment.Moment | null ;
+    protected player: GuildPlayer;
+    protected soundPath: string | null;
+
     /**
      * Target a channel to play a sound
-     * @param {VoiceChannel} channel The targeted VoiceChannel
      * @param {GuildPlayer} player GuildPlayer object that instanciate this target
+     * @param {VoiceChannel} channel The targeted VoiceChannel
      * @param {number} timeout The timeout duration in seconds
      */
-    constructor(channel, player, timeout) {
+    constructor(player: GuildPlayer, channel: VoiceChannel|null = null, timeout: number = 0) {
         super();
         this.channel = channel;
         this.timeoutDate = null;
@@ -64,7 +70,7 @@ class Target extends EventEmitter {
         // Check if all required condition are valid to play a sound
         if (!this.isValid()) {
             if (!(this.channel instanceof VoiceChannel)) {
-                this.triggerError('Channel instance invalide pour ' + this.player.guild.name + '/' + this.channel.name);
+                this.triggerError('Channel instance invalide pour ' + this.player.guild.name + '/' + (this.channel as VoiceChannel).name);
             }
             else if (!this.channel.speakable) {
                 this.triggerError('Le bot ne peut pas parler dans le channel ' + this.player.guild.name + '/' + this.channel.name);
@@ -85,11 +91,12 @@ class Target extends EventEmitter {
         // Get a sound file
         if (typeof this.soundPath !== 'string' || this.soundPath.length === 0) {
             const soundFiles = this.player.getSounds();
-            if (soundFiles.length === 0) {
+            if (soundFiles && soundFiles.length === 0) {
                 this.triggerError('Dossier audio vide.');
                 return false;
             }
-            const index = random(0, soundFiles.length - 1);
+            const soundFilesLength = (soundFiles && soundFiles.length) || 0;
+            const index = random(0, soundFilesLength - 1);
             this.soundPath = fs.realpathSync(this.player.soundDir + soundFiles[index]);
         }
 
@@ -99,7 +106,7 @@ class Target extends EventEmitter {
         }
 
         try {
-            fs.accessSync(this.soundPath, fs.R_OK);
+            fs.accessSync(this.soundPath, fs.constants.R_OK);
         }
         catch (err) {
             console.log(err);
@@ -150,13 +157,6 @@ class Target extends EventEmitter {
         });
     }
 
-    triggerError(error) {
-        if (error) {
-            console.error(error);
-        }
-        this.emit('error', this, error);
-    }
-
     isValid() {
         return this.channel instanceof VoiceChannel &&
             this.channel.joinable &&
@@ -164,5 +164,3 @@ class Target extends EventEmitter {
             this.channel.members.size > 0;
     }
 }
-
-module.exports = Target;

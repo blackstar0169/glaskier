@@ -1,7 +1,25 @@
-const { REST, SlashCommandBuilder, Routes } = require('discord.js');
-const { clientId, botToken } = require('./config.json');
+import { REST, SlashCommandBuilder, Routes } from 'discord.js';
+import fs from 'fs';
+import { config } from './Config';
 
-const command = new SlashCommandBuilder()
+// Read config
+if (!fs.existsSync('.env')) {
+    console.error('Env file ' + process.cwd() + '/.env not found.');
+    process.exit(1);
+}
+
+try {
+    config.init();
+}
+catch (e) {
+    console.error('.env file parsing error', e);
+    process.exit(2);
+}
+
+const botToken = config.get('discordToken');
+const clientId = config.get('discordClientId');
+
+const commands = new SlashCommandBuilder()
     .setName('gla')
     .setDescription('Interact with glaskier')
     .addSubcommand(subcommand =>
@@ -61,24 +79,6 @@ const command = new SlashCommandBuilder()
             .addStringOption(option => option.setName('key').setDescription('The binded key').setRequired(true))
             .addStringOption(option => option.setName('channel').setDescription('The where to play the sound')),
     )
-    // .addSubcommand(subcommand =>
-    //     subcommand
-    //         .setName('bind')
-    //         .setDescription('Bind a key to a sound')
-    //         .addStringOption(option => option.setName('key').setDescription('The key name (without space)').setRequired(true))
-    //         .addStringOption(option => option.setName('sound').setDescription('Sound name or index').setRequired(true))
-    // )
-    // .addSubcommand(subcommand =>
-    //     subcommand
-    //         .setName('unbind')
-    //         .setDescription('Unind a key to a sound')
-    //         .addStringOption(option => option.setName('key').setDescription('The key name (without space)').setRequired(true))
-    // )
-    // .addSubcommand(subcommand =>
-    //     subcommand
-    //         .setName('list-binds')
-    //         .setDescription('List binds')
-    // )
     .addSubcommand(subcommand =>
         subcommand
             .setName('list-sounds')
@@ -91,8 +91,23 @@ const command = new SlashCommandBuilder()
     );
 
 
-const rest = new REST({ version: '10' }).setToken(botToken);
+const rest = new REST().setToken(botToken);
 
-rest.put(Routes.applicationCommands(clientId), { body: [command.toJSON()] })
-    .then((ret) => console.log(`Successfully registered ${ret.length} application commands.`))
-    .catch(console.error);
+try {
+    console.log(`Started refreshing application (/) commands.`);
+    // The put method is used to fully refresh all commands in the guild with the current set
+    rest.put(Routes.applicationCommands(clientId), { body: [commands.toJSON()] }).then((data: any[]) => {
+        if (Array.isArray(data)) {
+            console.log(`Successfully reloaded ${data.length} application (/) commands.`);
+        } else {
+            console.error('Error while reloading application (/) commands.');
+            console.error(data);
+        }
+    }).catch((error) => {
+        console.error('Error while reloading application (/) commands.');
+        console.error(error);
+    });
+} catch (error) {
+    // And of course, make sure you catch and log any errors!
+    console.error(error);
+}

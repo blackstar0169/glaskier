@@ -1,11 +1,12 @@
-const { Collection, VoiceChannel } = require('discord.js');
-const moment = require('moment');
-const config = require('./config.js');
-const Target = require('./Target.js');
-const Cache = require('./Cache.js');
-const fs = require('fs');
-const path = require('path');
-const { random } = require('./utils.js');
+import { Collection, Guild, VoiceChannel } from 'discord.js';
+import moment from 'moment';
+import { config } from './Config';
+import Target from './Target';
+import Cache from './Cache';
+import fs from 'fs';
+import path from 'path';
+import { random } from './utils';
+import CanEmmitErrors from './Contracts/CanEmmitErrors';
 
 const eCantFindMember = 1;
 const eChannelPermissions = 1;
@@ -13,24 +14,34 @@ const eChannelPermissions = 1;
 /**
  * A player that will plan to play song at random interval. Each planification is called a Target
  */
-class GuildPlayer {
+export default class GuildPlayer extends CanEmmitErrors {
+    private target: Target | null = null;
+    private started: boolean;
+    private minLimit: number;
+    private maxLimit: number;
+    private history: string[] = [];
+    public guild: Guild;
+    public availableChannels: Collection<string, VoiceChannel>;
+    private cache: Cache;
+    public soundDir: string;
 
     constructor(guild) {
+        super ();
         this.target = null;
         this.started = true;
-        this.minLimit = config.get('defaultMinTime', 600);
-        this.maxLimit = config.get('defaultMaxTime', 3600);
+        this.minLimit = parseInt(config.get('defaultMinTime', 600));
+        this.maxLimit = parseInt(config.get('defaultMaxTime', 3600));
         this.history = [];
         this.guild = guild;
         /**
          * @var Collection
          */
-        this.availableChannels = new Collection();
+        this.availableChannels = new Collection<string, VoiceChannel>();
         this.cache = new Cache(this.guild.id);
         this.soundDir = config.get('soundDir').replace(/\/$/, '');
         // Add trailing salsh to sound dir
         this.soundDir = fs.realpathSync(this.soundDir);
-        if (this.soundDir.substr(-1) !== '/') {
+        if (this.soundDir.substring(-1) !== '/') {
             this.soundDir += '/';
         }
 
@@ -63,10 +74,9 @@ class GuildPlayer {
         }
 
         // Cancel planned target
-
         this.target = new Target(
-            null,
             this,
+            null,
             random(this.minLimit, this.maxLimit),
         );
 
@@ -100,14 +110,14 @@ class GuildPlayer {
         }
     }
 
-    scanChannels() {
+    scanChannels(): Collection<string, VoiceChannel> {
         // Get available voice channels in which we can play sound.
         this.availableChannels = this.guild.channels.cache
             .filter((channel) => {
                 return channel instanceof VoiceChannel &&
                                         channel.speakable &&
                                         channel.members.size;
-            });
+            }) as Collection<string, VoiceChannel>;
 
         return this.availableChannels;
     }
@@ -173,7 +183,7 @@ class GuildPlayer {
             channel.speakable &&
             channel.members.size
         ) {
-            const target = new Target(channel, this);
+            const target = new Target(this, channel);
             target.setSound(soundPath);
             target.play();
             return target;
@@ -210,5 +220,3 @@ class GuildPlayer {
         return eChannelPermissions;
     }
 }
-
-module.exports = GuildPlayer;

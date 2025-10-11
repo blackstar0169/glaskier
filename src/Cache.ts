@@ -1,10 +1,12 @@
-const fs = require('fs');
+import fs from 'fs';
 
-class Cache {
-    constructor(id) {
-        this.dir = './cache/';
+export default class Cache {
+    protected dir = './cache/';
+    protected file: string;
+    protected values: {[key: string]: any} = {};
+
+    constructor(id: string) {
         this.file = id;
-        this.values = {};
         if (!fs.existsSync(this.dir)) {
             console.error('Storage dir does not exists');
             process.exit(3);
@@ -19,19 +21,19 @@ class Cache {
         return this.values;
     }
 
-    pull(key, def) {
+    pull(key: string, def: any = undefined) {
         if (Object.keys(this.values).indexOf(key) >= 0) {
             return this.values[key];
         }
         return def;
     }
 
-    push(key, val) {
+    push(key: string, val: any) {
         this.values[key] = val;
         this.save();
     }
 
-    forget(key) {
+    forget(key: string) {
         if (Object.keys(this.values).indexOf(key) >= 0) {
             delete this.values[key];
         }
@@ -48,8 +50,6 @@ class Cache {
     }
 
     load() {
-        this.values = JSON.parse(fs.readFileSync(this.dir + this.file));
+        this.values = JSON.parse(fs.readFileSync(this.dir + this.file).toString());
     }
 }
-
-module.exports = Cache;
