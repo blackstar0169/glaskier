@@ -1,15 +1,15 @@
 import { VoiceChannel } from 'discord.js';
-import { createAudioResource, createAudioPlayer } from '@discordjs/voice';
+import { createAudioResource, createAudioPlayer, VoiceConnection } from '@discordjs/voice';
 import mp3Duration from 'mp3-duration';
 import moment from 'moment';
-import { random, empty, connectToChannel } from './utils.js';
+import { random, empty, connectToChannel, safelyDestroyConnection } from './utils.js';
 import fs from 'fs';
 import CanEmmitErrors from './Contracts/CanEmmitErrors.js';
 import GuildPlayer from './GuildPlayer.js';
 
 export default class Target extends CanEmmitErrors {
+    public  timeoutDate: moment.Moment | null ;
     protected channel: VoiceChannel | null;
-    protected timeoutDate: moment.Moment | null ;
     protected player: GuildPlayer;
     protected soundPath: string | null;
 
@@ -135,9 +135,7 @@ export default class Target extends CanEmmitErrors {
                 subscription = connection.subscribe(player);
             }
             catch (error) {
-                if (connection) {
-                    connection.destroy();
-                }
+                safelyDestroyConnection(connection);
                 console.error(error);
                 return;
             }
@@ -146,9 +144,7 @@ export default class Target extends CanEmmitErrors {
                 if (subscription) {
                     subscription.unsubscribe();
                 }
-                if (connection) {
-                    connection.destroy();
-                }
+                safelyDestroyConnection(connection);
                 this.emit('played', this.channel, this.soundPath);
                 this.timeout = null;
                 this.timeoutDate = null;

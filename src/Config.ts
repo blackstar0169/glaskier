@@ -1,5 +1,6 @@
 import dotenv from "dotenv";
 import { camelize } from "./utils";
+import fs from 'fs';
 
 class Config {
     protected config = {};
@@ -17,13 +18,17 @@ class Config {
      * Init configuration
      */
     public init() {
-        dotenv.config();
+
+        // Read config
+        if (fs.existsSync('.env')) {
+            dotenv.config();
+        }
 
         const config = this.populate(process.env);
 
         const errors = this.validate(config);
         if (errors.length > 0) {
-            throw new Error('Config error. Missing properties : ' + errors.join(', '));
+            throw new Error('Config error. Missing environment variables : ' + errors.join(', '));
         }
 
         this.config = Object.assign({}, this.default, config);
@@ -72,7 +77,7 @@ class Config {
      * @returns {boolean}
      */
     public isProd(): boolean {
-        const env = this.get('nodeEnv', 'dev');
+        const env = this.get('nodeEnv', 'dev').toLowerCase();
         return env === 'prod' || env === 'production';
     }
 }

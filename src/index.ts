@@ -1,7 +1,6 @@
 console.log('Running NodeJS ' + process.version);
 console.log('CWD : ' + process.cwd());
 
-import fs from 'fs';
 import { Client, GatewayIntentBits } from 'discord.js';
 import GuildPlayer from './GuildPlayer.js';
 import { findPlayerByGuild } from './utils.js';
@@ -17,14 +16,7 @@ const client = new Client({
     ],
 });
 
-const players = [];
-
-
-// Read config
-if (!fs.existsSync('.env')) {
-    console.error('Env file ' + process.cwd() + '/.env not found.');
-    process.exit(1);
-}
+const players: GuildPlayer[] = [];
 
 try {
     config.init();

@@ -1,12 +1,5 @@
 import { REST, SlashCommandBuilder, Routes } from 'discord.js';
-import fs from 'fs';
 import { config } from './Config';
-
-// Read config
-if (!fs.existsSync('.env')) {
-    console.error('Env file ' + process.cwd() + '/.env not found.');
-    process.exit(1);
-}
 
 try {
     config.init();

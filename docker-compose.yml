@@ -1,0 +1,9 @@
+services:
+  glaskier:
+    build: .
+    container_name: glaskier
+    env_file:
+      - .env
+    volumes:
+      - ./sounds:/app/sounds
+    restart: unless-stopped
