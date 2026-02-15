@@ -1,4 +1,4 @@
-import { Collection, Guild, VoiceChannel } from 'discord.js';
+import { Collection, Guild, GuildMember, VoiceChannel } from 'discord.js';
 import moment from 'moment';
 import { config } from './Config';
 import Target from './Target';
@@ -152,10 +152,11 @@ export default class GuildPlayer extends CanEmmitErrors {
     /**
      * Play a random sound in the channel where the given member is
      * @param {GuildMember} member
+     * @param {string|null} soundPath
      * @return bool|int True if the member that is targeted has been found in a channel or an error
      * number if it failed.
      */
-    targetMember(member, soundPath) {
+    targetMember(member: GuildMember, soundPath: string|null = null) {
         // Find the VoiceChannel where the author is.
         const memberChannel = this.guild.channels.cache.find((channel) => {
             return channel instanceof VoiceChannel && channel.members.find((m) => {
@@ -173,17 +174,18 @@ export default class GuildPlayer extends CanEmmitErrors {
     /**
      * Play a random sound in the given channel
      * @param {GuildChannel} channel
+     * @param {string|null} soundPath
      * @return bool|int True if the member that is targeted has been found in a channel or an error
      * number if it failed.
      */
-    targetChannel(channel, soundPath) {
+    targetChannel(channel, soundPath: string|null = null) {
         // If we can play sound in the channel
         if (channel instanceof VoiceChannel &&
             channel.joinable &&
             channel.speakable &&
             channel.members.size
         ) {
-            const target = new Target(this, channel);
+            const target = new Target(this, channel, null);
             target.setSound(soundPath);
             target.play();
             return target;

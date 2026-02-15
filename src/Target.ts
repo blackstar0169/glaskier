@@ -19,7 +19,7 @@ export default class Target extends CanEmmitErrors {
      * @param {VoiceChannel} channel The targeted VoiceChannel
      * @param {number} timeout The timeout duration in seconds
      */
-    constructor(player: GuildPlayer, channel: VoiceChannel|null = null, timeout: number = 0) {
+    constructor(player: GuildPlayer, channel: VoiceChannel|null = null, timeout: number|null = 0) {
         super();
         this.channel = channel;
         this.timeoutDate = null;
@@ -52,7 +52,7 @@ export default class Target extends CanEmmitErrors {
         this.timeoutDate = null;
     }
 
-    setSound(soundPath) {
+    setSound(soundPath: string|null = null) {
         this.soundPath = soundPath;
     }
 
@@ -117,6 +117,7 @@ export default class Target extends CanEmmitErrors {
         // Play the sound
         const now = new Date();
         console.log('[' + now.toISOString() + '] ' + this.soundPath);
+        console.trace();
 
         // Get the sound duration to disconnect at the end of it
         mp3Duration(this.soundPath, async (err, duration) => {

@@ -1,5 +1,5 @@
 import { config } from './Config';
-import { VoiceChannel } from 'discord.js';
+import { ChatInputCommandInteraction, Guild, GuildMember, VoiceChannel } from 'discord.js';
 
 import GuildPlayer from './GuildPlayer';
 import { chunk, camelize } from './utils';
@@ -82,7 +82,11 @@ export default class Command {
      * @param {ChatInputCommandInteraction} interaction Message of the command
      * @returns
      */
-    static test(player, message) {
+    static test(player: GuildPlayer, message: ChatInputCommandInteraction) {
+        if (!(message.member instanceof GuildMember)) {
+            return 'Impossible de trouver le membre';
+        }
+
         const ret = player.targetMember(message.member);
         if (typeof ret === 'number') {
             if (ret === GuildPlayer.eCantFindMember) {
