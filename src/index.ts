@@ -1,7 +1,7 @@
 console.log('Running NodeJS ' + process.version);
 console.log('CWD : ' + process.cwd());
 
-import { Client, GatewayIntentBits } from 'discord.js';
+import { Client, GatewayIntentBits, Events } from 'discord.js';
 import GuildPlayer from './GuildPlayer.js';
 import { findPlayerByGuild } from './utils.js';
 import Command from './Command.js';
@@ -32,7 +32,7 @@ process.on('SIGINT', function() {
 });
 
 // Toutes les actions à faire quand le bot se connecte
-client.on('ready', () => {
+client.on(Events.ClientReady, () => {
     console.log('Servers list : ');
     client.guilds.cache.each((guild) => {
         players.push(new GuildPlayer(guild));
@@ -43,7 +43,7 @@ client.on('ready', () => {
     }
 });
 
-client.on('interactionCreate', async interaction => {
+client.on(Events.InteractionCreate, async interaction => {
     if (!interaction.isChatInputCommand()) return;
 
     if (interaction.commandName === 'gla') {
@@ -60,7 +60,7 @@ client.on('interactionCreate', async interaction => {
     // Command.exec(message.commandName, player, message);
 });
 
-client.on('guildCreate', (guild) => {
+client.on(Events.GuildCreate, (guild) => {
     console.log('Added to guild ' + guild.name);
     // Don't recreate a player if the guild exists
     const find = players.filter(player => guild.id === player.guild.id);
@@ -69,7 +69,7 @@ client.on('guildCreate', (guild) => {
         players.push(new GuildPlayer(guild));
     }
 });
-client.on('guildDelete', (guild) => {
+client.on(Events.GuildDelete, (guild) => {
     console.log('Removed from guild ' + guild.name);
 
     for (let i = players.length; i >= 0; i--) {

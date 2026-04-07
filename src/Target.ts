@@ -117,7 +117,6 @@ export default class Target extends CanEmmitErrors {
         // Play the sound
         const now = new Date();
         console.log('[' + now.toISOString() + '] ' + this.soundPath);
-        console.trace();
 
         // Get the sound duration to disconnect at the end of it
         mp3Duration(this.soundPath, async (err, duration) => {
@@ -137,6 +136,7 @@ export default class Target extends CanEmmitErrors {
             }
             catch (error) {
                 safelyDestroyConnection(connection);
+                console.error('Error connecting to channel');
                 console.error(error);
                 return;
             }

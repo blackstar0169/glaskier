@@ -25,7 +25,7 @@ export async function connectToChannel(channel: VoiceChannel): Promise<VoiceConn
     });
 
     try {
-        await entersState(connection, VoiceConnectionStatus.Ready, 3e3);
+        await entersState(connection, VoiceConnectionStatus.Ready, 3_000);
         return connection;
     }
     catch (error) {
