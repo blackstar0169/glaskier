@@ -6,4 +6,4 @@ services:
       - .env
     volumes:
       - ./sounds:/app/sounds
-    restart: unless-stopped
+    restart: always

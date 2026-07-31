@@ -1,0 +1,9 @@
+services:
+  glaskier:
+    build: .
+    container_name: glaskier
+    env_file: stack.env
+    user: "1003:1003"
+    volumes:
+      - /opt/docker/glaskier/sounds:/app/sounds
+    restart: always
